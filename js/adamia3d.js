@@ -731,6 +731,9 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		// Bake the affine transform, including translation
 		rctx.transform(aff2d11, aff2d21, aff2d12, aff2d22, scrDX, scrDY);
 
+		if (bx1 < 0) bx1 = 0;
+		if (by1 < 0) by1 = 0;
+
 		rctx.drawImage(img, bx1, by1, bw, bh, bx1, by1, bw, bh);
 		
 		rctx.restore();
