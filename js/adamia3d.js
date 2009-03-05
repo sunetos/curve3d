@@ -703,6 +703,7 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		
 		// Account for gaps between triangles (rendering artifacts)
 		var grow = 2, halfGrow = grow >> 1;
+		grow = 0;
 		if (grow) {
 			if ((bx1 + bw) < w) bw += grow;
 			if ((by1 + bh) < h) bh += grow;
