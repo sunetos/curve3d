@@ -148,6 +148,7 @@ a3d.Viewport = Class.extend({
 		switch (a3d.$B) {
 			case 'FF2':
 			case 'FF3':
+			case 'FF':
 				//return a3d.RendererSVG; break;
 				//return a3d.RendererCanvas2dBlit; break;
 			case 'Chr':
@@ -647,9 +648,6 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		var scrDX = v1x - scrImgX, scrDY = v1y - scrImgY;
 		
 		// Find source and destination bounding boxes; requires sorting vertices
-		var bx = [imgX, imgX + uvm._11, imgX + uvm._21];
-		var by = [imgY, imgY + uvm._12, imgY + uvm._22];
-		
 		var x1 = imgX, x2 = imgX + uvm._11, x3 = imgX + uvm._21
 		  , y1 = imgY, y2 = imgY + uvm._12, y3 = imgY + uvm._22
 		
