@@ -642,8 +642,8 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		
 		// Find texture screen position
 		var imgX = tri.originX, imgY = tri.originY;
-		var scrImgX = imgX*aff2d11 + imgY*aff2d12
-		  , scrImgY = imgX*aff2d21 + imgY*aff2d22;
+		var scrImgX = (imgX*aff2d11 + imgY*aff2d12) | 0
+		  , scrImgY = (imgX*aff2d21 + imgY*aff2d22) | 0;
 		// Find delta vector from texture to triangle
 		var scrDX = v1x - scrImgX, scrDY = v1y - scrImgY;
 		
@@ -651,7 +651,7 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		var x1 = imgX, x2 = imgX + uvm._11, x3 = imgX + uvm._21
 		  , y1 = imgY, y2 = imgY + uvm._12, y3 = imgY + uvm._22
 		
-		var bx1, bx2, bx3, by1, by2, by3;
+		var bx1, bx2, bx3, by1, by2, by3, bx1y, bx2y, bx3y;
 		var xTmp, yTmp;
 		
 		// Sort the vertices
@@ -659,21 +659,27 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 			if (x1 < x3) {
 				if (x2 < x3) {
 					bx1 = x1; bx2 = x2; bx3 = x3;
+					bx1y = y1; bx2y = y2; bx3y = y3;
 				} else{
 					bx1 = x1; bx2 = x3; bx3 = x2;
+					bx1y = y1; bx2y = y3; bx3y = y2;
 				}
 			} else {
 				bx1 = x3; bx2 = x1; bx3 = x2;
+				bx1y = y3; bx2y = y1; bx3y = y2;
 			}
 		} else {
 			if (x2 < x3) {
 				if (x1 < x3) {
 					bx1 = x2; bx2 = x1; bx3 = x3;
+					bx1y = y2; bx2y = y1; bx3y = y3;
 				} else{
 					bx1 = x2; bx2 = x3; bx3 = x1;
+					bx1y = y2; bx2y = y3; bx3y = y1;
 				}
 			} else {
 				bx1 = x3; bx2 = x2; bx3 = x1;
+				bx1y = y3; bx2y = y2; bx3y = y1;
 			}
 		}
 
@@ -698,44 +704,59 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 				by1 = y3; by2 = y2; by3 = y1;
 			}
 		}
-
+		
 		var bw = bx3 - bx1, bh = by3 - by1;
 		
-		// Account for gaps between triangles (rendering artifacts)
+		var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
+		var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
+		  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
+		  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
+		  
+		// Account for seams between triangles (rendering artifacts)
 		var grow = 2, halfGrow = grow >> 1;
-		grow = 0;
+		var dstbx = bx1, dstby = by1, dstbw = bw, dstbh = bh;
+		
 		if (grow) {
-			if ((bx1 + bw) < w) bw += grow;
-			if ((by1 + bh) < h) bh += grow;
+			if ((dstbx + dstbw) < w) dstbw += grow;
+			if ((dstby + dstbh) < h) dstbh += grow;
 			
-			if (bx1 > 0) {
-				bx1 -= halfGrow;
-				bw += grow;
+			if (dstbx > 0) {
+				dstbx -= halfGrow;
+				dstbw += grow;
 			}
-			if (by1 > 0) {
-				by1 -= halfGrow;
-				bh += grow;
+			if (dstby > 0) {
+				dstby -= halfGrow;
+				dstbh += grow;
 			}
 		}
+		
+		// More attempts to account for the saems
+		var offPix = 1;
+		var off1x = (dir1x < -0.001) ? -offPix : ((dir1x > 0.001) ? offPix : 0);
+		var off1y = (dir1y < -0.001) ? -offPix : ((dir1y > 0.001) ? offPix : 0);
+		var off2x = (dir2x < -0.001) ? -offPix : ((dir2x > 0.001) ? offPix : 0);
+		var off2y = (dir2y < -0.001) ? -offPix : ((dir2y > 0.001) ? offPix : 0);
+		var off3x = (dir3x < -0.001) ? -offPix : ((dir3x > 0.001) ? offPix : 0);
+		var off3y = (dir3y < -0.001) ? -offPix : ((dir3y > 0.001) ? offPix : 0);
+		
 		
 		// Clip to show just the triangle.
 		// TODO: This nearly doubles the rendering time. Optimize it by maybe rendering to a clipping buffer
 		// and clip out after rendering all triangles but before flipping the buffer?
 		// TODO: In firefox, this causes rendering artifacts in the form of gaps between triangles. Fix it.
 		rctx.beginPath();
-		rctx.moveTo(v1x, v1y);
-		rctx.lineTo(v2x, v2y);
-		rctx.lineTo(v3x, v3y);
+		//var factor = 0.99;
+		var factor = 1;
+		rctx.moveTo(v1x + off1x, v1y + off1y);
+		rctx.lineTo(v2x + off2x, v2y + off2y);
+		rctx.lineTo(v3x + off3x, v3y + off3y);
 		rctx.closePath();
 		rctx.clip();
 		
 		// Bake the affine transform, including translation
 		rctx.transform(aff2d11, aff2d21, aff2d12, aff2d22, scrDX, scrDY);
-
-		if (bx1 < 0) bx1 = 0;
-		if (by1 < 0) by1 = 0;
-
-		rctx.drawImage(img, bx1, by1, bw, bh, bx1, by1, bw, bh);
+		
+		rctx.drawImage(img, bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh);
 		
 		rctx.restore();
 	}

@@ -173,6 +173,23 @@ a3d.Vec3 = a3d.MathClass.extend({
 		return ((this.abs(this.x - v.x) < 0) && (this.abs(this.y - v.y) < 0) && (this.abs(this.z - v.z) < 0));
 	}
 	
+	, dist: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y, dz = v.z - this.z;
+		return this.sqrt(dx*dx + dy*dy + dz*dz);
+	}
+	, dist2: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y, dz = v.z - this.z;
+		return dx*dx + dy*dy + dz*dz;
+	}
+	, dist2d: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y;
+		return this.sqrt(dx*dx + dy*dy);
+	}
+	, dist2d2: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y;
+		return dx*dx + dy*dy;
+	}
+	
 	, trans: function(m, v) {
 		var vx = v.x, vy = v.y, vz = v.z;
 		
@@ -215,6 +232,11 @@ a3d.Vec2 = a3d.MathClass.extend({
 	, clone: function() {
 		return new a3d.Vec2(this.x, this.y);
 	}
+	, set: function(v) {
+		this.x = v.x; this.y = v.y;
+		
+		return this;
+	}
 	
 	// Scalar operations
 	, mul: function(s) {
@@ -236,6 +258,15 @@ a3d.Vec2 = a3d.MathClass.extend({
 	}
 	, dot: function(v) {
 		return this.x*v.x + this.y*v.y;
+	}
+	
+	, dist: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y;
+		return this.sqrt(dx*dx + dy*dy);
+	}
+	, dist2: function(v) {
+		var dx = v.x - this.x, dy = v.y - this.y;
+		return dx*dx + dy*dy;
 	}
 	
 	// Miscellaneous
