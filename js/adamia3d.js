@@ -99,6 +99,65 @@ a3d.trace = function(stuff) {
 	}
 }
 
+// Minimalist ajax data fetcher. Only intended for loading models.
+// Async is the only support mode, no intention of allowing synchronous in JS.
+// Built off of jQuery 1.3.2 source by deleting 90% of the ajax() function.
+a3d.get = function(url, success, fail) {
+	var xhr = window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
+	var contentType = 'text/plain';
+	var async = true;
+	
+	var requestDone = false;
+	xhr.open('GET', url, async);
+	
+	try {
+		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+		xhr.setRequestHeader("Accept", contentType);
+	} catch(e){}
+	
+	var onreadystatechange = function(){
+		if (xhr.readyState == 0) {
+			if (ival) {
+				clearInterval(ival);
+				ival = null;
+			}
+		} else if (!requestDone && xhr && (xhr.readyState == 4)) {
+			requestDone = true;
+			
+			if (ival) {
+				clearInterval(ival);
+				ival = null;
+			}
+
+			var succeeded;
+			try {
+				succeeded = !xhr.status && location.protocol == "file:" ||
+					(xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || xhr.status == 1223;
+			} catch(e){
+				succeeded = false;
+			}
+			
+			if (succeeded) {
+				var data = xhr.responseText;
+				if (success) success(data, url);
+			} else {
+				if (fail) fail(url);
+			}
+			
+			if (async) xhr = null;
+		}
+	};
+	
+	if (async) var ival = setInterval(onreadystatechange, 13);
+	
+	try {
+		xhr.send(null);
+	} catch(e) {
+		if (fail) fail(url);
+	}
+
+}
+
 a3d.Viewport = Class.extend({
 	  id: null
 	, node: null
@@ -215,7 +274,11 @@ a3d.Entity = Class.extend({
 		this.children.push(child);
 		if (!dontSetP) child.parent = this; 
 	}
-	
+	, addChildren: function(chs) {
+		for (var i = 0; i < chs.length; ++i) {
+			this.addChild(chs[i]);
+		}
+	}
 	, removeChild: function(child) {
 		this.children.remove(child);
 	}
@@ -717,17 +780,19 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		var dstbx = bx1, dstby = by1, dstbw = bw, dstbh = bh;
 		
 		if (grow) {
-			if ((dstbx + dstbw) < w) dstbw += grow;
-			if ((dstby + dstbh) < h) dstbh += grow;
-			
-			if (dstbx > 0) {
+			if (dstbx > halfGrow) {
 				dstbx -= halfGrow;
 				dstbw += grow;
 			}
-			if (dstby > 0) {
+			if (dstby > halfGrow) {
 				dstby -= halfGrow;
 				dstbh += grow;
 			}
+			
+			if ((dstbx + dstbw) < w) dstbw += grow;
+			else dstbw = w - dstbx;
+			if ((dstby + dstbh) < h) dstbh += grow;
+			else dstbh = h - dstby;
 		}
 		
 		// More attempts to account for the saems
@@ -745,17 +810,20 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		// and clip out after rendering all triangles but before flipping the buffer?
 		// TODO: In firefox, this causes rendering artifacts in the form of gaps between triangles. Fix it.
 		rctx.beginPath();
-		//var factor = 0.99;
-		var factor = 1;
 		rctx.moveTo(v1x + off1x, v1y + off1y);
 		rctx.lineTo(v2x + off2x, v2y + off2y);
 		rctx.lineTo(v3x + off3x, v3y + off3y);
 		rctx.closePath();
 		rctx.clip();
 		
+		if (dstbx < 0) dstbx = 0;
+		if (dstby < 0) dstby = 0;
+		if (bx1 < 0) bx1 = 0;
+		if (by1 < 0) by1 = 0;
+		
 		// Bake the affine transform, including translation
 		rctx.transform(aff2d11, aff2d21, aff2d12, aff2d22, scrDX, scrDY);
-		
+		//console.log([bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh]);
 		rctx.drawImage(img, bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh);
 		
 		rctx.restore();
@@ -1104,27 +1172,23 @@ a3d.ScreenTriangle = Class.extend({
 	}
 });
 
-a3d.MeshData = Class.extend({
-	  vs: []	// verts
-	, vns: []	// vert normals
-	, uvs: []	// UV coords
-	, fs: []	// faces
-	, fns: []	// face normals
-	
-	, init: function() {
-		this.clear();	// must do this the first time, so that Class variables arent referenced
-	}
-	, clear: function() {
-		this.vs = []; this.vns = []; this.uvs = [];
-		this.fs = []; this.fns = [];
+// Static class, just call the functions directly without instantiating a MeshLoader
+a3d.MeshLoader = {
+	  newMesh: function(name, vs, vns, uvs, fs, fns) {
+		var md = new a3d.MeshData();
+		md.vs = vs; md.vns = vns; md.uvs = uvs; md.fs = fs; md.fns = fns;
+		var m = new a3d.Mesh(md);
+		m.name = name;
+		
+		return m;
 	}
 	, parseOBJ: function(obj) {
-		this.clear();
-		var vs = this.vs, vns = this.vns, uvs = this.uvs, fs = this.fs, fns = this.fns;
+		var vs = [], vns = [], uvs = [], fs = [], fns = [];
 		
 		var lines = obj.split("\n");
 		var lineCount = lines.length;
 		var dblSpace = /[ ][ ]/g;
+		var objs = [];
 		
 		for (var i = 0; i < lineCount; ++i) {
 			var line = lines[i];
@@ -1133,6 +1197,19 @@ a3d.MeshData = Class.extend({
 			
 			var l2 = line.substr(0, 2);
 			switch (l2) {
+				case 'o ': {
+					var name = a3d.trim(line.substr(2));
+					if (vs.length > 0 && objs.length == 0) {	// Handle data before the first named object
+						var m = this.newMesh('[noname]', vs, vns, uvs, fs, fns);
+						objs.push(m);
+					}
+					//vs = []; vns = []; uvs = []; fs = []; fns = [];
+					fs = []; fns = [];
+					var m = this.newMesh(name, vs, vns, uvs, fs, fns);
+					objs.push(m);
+					
+					break;
+				}
 				case 'v ': {
 					var xyz = a3d.trim(line.substr(2).replace(dblSpace, ' ')).split(' ');
 					//var col = new a3d.Color(Math.random()*0xFFFFFF);
@@ -1183,6 +1260,46 @@ a3d.MeshData = Class.extend({
 				}
 			}
 		}
+		
+		if (vs.length > 0 && objs.length == 0) {	// Handle data not in a named object
+			var m = this.newMesh('[noname]', vs, vns, uvs, fs, fns);
+			objs.push(m);
+		}
+		
+		var objl = objs.length;
+		for (var i = 0; i < objl; ++i) {
+			objs[i].build();
+		}
+		
+		return objs;
+	}
+	
+	// Optionally lets you specify your own loadFunc to let jQuery or your favorite lib do the work.
+	// Just make sure its params are: url, successFunc, failFunc
+	, loadOBJ: function(url, success, fail, loadFunc) {
+		if (!loadFunc) loadFunc = a3d.get;
+		
+		var objData = loadFunc(url, function(data) {
+			if (success) success(a3d.MeshLoader.parseOBJ(data));
+		}, function() {
+			if (fail) fail(null);
+		});
+	}
+};
+
+a3d.MeshData = Class.extend({
+	  vs: []	// verts
+	, vns: []	// vert normals
+	, uvs: []	// UV coords
+	, fs: []	// faces
+	, fns: []	// face normals
+	
+	, init: function() {
+		this.clear();	// must do this the first time, so that Class variables arent referenced
+	}
+	, clear: function() {
+		this.vs = []; this.vns = []; this.uvs = [];
+		this.fs = []; this.fns = [];
 	}
 });
 
@@ -1223,8 +1340,16 @@ a3d.Mesh = a3d.SceneNode.extend({
 		this.data = (data) ? data : null;
 		this.textures = [];
 		
+		if (this.data) this.build();
+	}
+	
+	, build: function() {
 		// Save an array for the screen triangles to prevent allocating new ones every frame
+		var data = this.data;
+		if (!data) return;
+		
 		var dl = data.fs.length;
+		if (dl == 0) return;
 
 		var tris = data.fs;
 		this.stris = new Array(dl);
