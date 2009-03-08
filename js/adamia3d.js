@@ -256,7 +256,10 @@ a3d.Viewport = Class.extend({
 		for (var i = 0; i < tk.length; ++i) {
 			tk[i](dt);
 		}
-		this.scene.update();				// update geometry
+		
+		var cam = this.camera;
+		cam.update(dt);
+		this.scene.update(cam.invM, dt);				// update geometry
 		this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
 	}
 });
@@ -350,10 +353,12 @@ a3d.Node = a3d.Entity.extend({
 	, moveBy: function(x, y, z) {
 		var pos = this.pos;
 		pos.x += x; pos.y += y; pos.z += z;
+		this.dirty = true;
 	}
 	, moveTo: function(x, y, z) {
 		var pos = this.pos;
 		pos.x = x; pos.y = y; pos.z = z;
+		this.dirty = true;
 	}
 	
 	// TODO: Optimize the next few functions by baking axis vectors into matrices
@@ -440,8 +445,9 @@ a3d.Scene = Class.extend({
 		this.root.removeChild(child);
 	}
 	
-	, update: function(dt) {
-		this.root.update(this.baseM, dt);
+	, update: function(baseM, dt) {
+		if (!baseM) baseM = this.baseM;
+		this.root.update(baseM, dt);
 	}
 	
 	, render: function(r) {
@@ -475,6 +481,7 @@ a3d.Camera = a3d.Node.extend({
 	, vw: 0
 	, vh: 0
 	, viewM: null
+	, invM: null
 	
 	// scratch vars
 	, sv1: null, sv2: null, sv3: null
@@ -483,8 +490,11 @@ a3d.Camera = a3d.Node.extend({
 		a3d.setup(this, cfg);
 		
 		this.viewM = new a3d.Mat4();
+		this.invM = new a3d.Mat4();
 		
 		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
+		
+		this._super();
 	}
 	
 	, viewportResize: function() {
@@ -524,6 +534,11 @@ a3d.Camera = a3d.Node.extend({
 		sv1.trans(screenM, sv1); sv2.trans(screenM, sv2); sv3.trans(screenM, sv3);
 		
 		stri.center.set(sv1).add(sv2).add(sv3).div(3.0);
+	}
+	//, _update: update
+	, update: function(dt) {
+		this._super(a3d.M4, dt);
+		this.invM.inv3m(this.m);
 	}
 });
 

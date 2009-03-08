@@ -685,15 +685,15 @@ a3d.Mat3 = a3d.MathClass.extend({
 			 + m13*(m21*m32 - m22*m31)
 	}
 	// TODO: Optimize this by avoiding the det() call: dont duplicate multiplies
-	, inv: function() {
-		var d = this.det();
+	, invm: function(m) {
+		var d = m.det();
 		if (this.abs(d) < 0.0001) return null;
 		
 		d = 1.0/d;
 
-		var m11 = this._11, m12 = this._12, m13 = this._13,
-		    m21 = this._21, m22 = this._22, m23 = this._23,
-		    m31 = this._31, m32 = this._32, m33 = this._33;
+		var m11 = m._11, m12 = m._12, m13 = m._13,
+		    m21 = m._21, m22 = m._22, m23 = m._23,
+		    m31 = m._31, m32 = m._32, m33 = m._33;
 		
 		this._11 = d*(m22*m33 - m23*m32);
 		this._12 = d*(m32*m13 - m12*m33);
@@ -706,6 +706,9 @@ a3d.Mat3 = a3d.MathClass.extend({
 		this._33 = d*(m11*m22 - m21*m12);
 		
 		return this;
+	}
+	, inv: function() {
+		return this.invm(this);
 	}
 	
 	// m1*m2, apply to self
