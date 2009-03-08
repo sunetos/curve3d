@@ -810,14 +810,10 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 			else dstbh = h - dstby;
 		}
 		
-		// More attempts to account for the saems
-		var offPix = 1;
-		var off1x = (dir1x < -0.001) ? -offPix : ((dir1x > 0.001) ? offPix : 0);
-		var off1y = (dir1y < -0.001) ? -offPix : ((dir1y > 0.001) ? offPix : 0);
-		var off2x = (dir2x < -0.001) ? -offPix : ((dir2x > 0.001) ? offPix : 0);
-		var off2y = (dir2y < -0.001) ? -offPix : ((dir2y > 0.001) ? offPix : 0);
-		var off3x = (dir3x < -0.001) ? -offPix : ((dir3x > 0.001) ? offPix : 0);
-		var off3y = (dir3y < -0.001) ? -offPix : ((dir3y > 0.001) ? offPix : 0);
+		// More attempts to account for the seams
+		off1x = dir1x*0.15; off1y = dir1y*0.15;
+		off2x = dir2x*0.15; off2y = dir2y*0.15;
+		off3x = dir3x*0.15; off3y = dir3y*0.15;
 		
 		
 		// Clip to show just the triangle.
