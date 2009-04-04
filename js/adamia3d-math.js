@@ -293,6 +293,14 @@ a3d.Vec2 = a3d.MathClass.extend({
 		
 		return this;
 	}
+	, trans2: function(m, v) {
+		var vx = v.x, vy = v.y;
+		
+		this.x = m._11*vx + m._12*vy;
+		this.y = m._21*vx + m._22*vy;
+		
+		return this;
+	}
 	
 	// Pretty darn slow function, but it should only be used in debugging anyway.
 	, toString: function() {
@@ -727,6 +735,20 @@ a3d.Mat3 = a3d.MathClass.extend({
 		this._22 = m121*m212 + m122*m222;
 		this._23 = m1._23;
 	}
+	// Times-equals, apply to self
+	, mul2: function(m2) {
+		var m111 = this._11, m112 = this._12,
+		    m121 = this._21, m122 = this._22;
+		
+		var m211 = m2._11, m212 = m2._12,
+		    m221 = m2._21, m222 = m2._22;
+		
+		this._11 = m111*m211 + m112*m221;
+		this._12 = m111*m212 + m112*m222;
+
+		this._21 = m121*m211 + m122*m221;
+		this._22 = m121*m212 + m122*m222;
+	}
 	
 	// m1*m2, apply to self
 	, mulm: function(m1, m2) {
@@ -778,6 +800,12 @@ a3d.Mat3 = a3d.MathClass.extend({
 		this._21 *= s; this._22 *= s;
 		return this;
 	}
+	, scaleXY: function(sx, sy) {
+		this._11 *= sx; this._12 *= sx;
+		this._21 *= sy; this._22 *= sy;
+		
+		return this;
+	}
 	
 	, moveTo: function(x, y) {
 		this._13 = x; this._23 = y;
@@ -802,6 +830,10 @@ a3d.Mat3 = a3d.MathClass.extend({
 		'[' + [this._21, this._22, this._23].join(',') + '],' +
 		'[' + [this._31, this._32, this._33].join(',') +
 		']]';
+	}
+	, toCssString: function() {
+		//return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
+		return 'matrix(' + [this._11, this._21, this._12, this._22, this._13, this._23].join(',') + ')';
 	}
 });
 
@@ -891,6 +923,12 @@ a3d.Mat2 = a3d.MathClass.extend({
 		
 		return this;
 	}
+	, scaleXY: function(sx, sy) {
+		this._11 *= sx; this._12 *= sx;
+		this._21 *= sy; this._22 *= sy;
+		
+		return this;
+	}
 	
 	, clone: function() {
 		var c = new a3d.Mat2();
@@ -906,6 +944,10 @@ a3d.Mat2 = a3d.MathClass.extend({
 		'[' + [this._11, this._12].join(',') + '],' +
 		'[' + [this._21, this._22].join(',') +
 		']]';
+	}
+	, toCssString: function() {
+		return 'matrix(' + [this._11, this._12, this._21, this._22, 0, 0].join(',') + ')';
+		//return 'matrix(' + [this._11, this._21, this._12, this._22, 0, 0].join(',') + ')';
 	}
 });
 

@@ -210,10 +210,12 @@ a3d.Viewport = Class.extend({
 			case 'FF':
 				//return a3d.RendererSVG; break;
 				//return a3d.RendererCanvas2dBlit; break;
-			case 'Chr':
+				return a3d.RendererCss3; break;
 			case 'Op':
 			case 'Saf':
 				return a3d.RendererCanvas2d; break;
+			case 'Chr':
+				return a3d.RendererCss3; break;
 		}
 		return null;
 	}
@@ -917,6 +919,246 @@ a3d.RendererCanvas2dBlit = a3d.RendererCanvas2dBase.extend({
 	}
 });
 
+a3d.RendererCss3 = a3d.RendererBase.extend({
+	  triFrag: null		// Cache a DOM fragment for triangle proxy node trees
+	, transProp: ''		// WebkitTransform, MozTransform, etc.
+	, sqrt: Math.sqrt
+	, cos: Math.cos
+	, sin: Math.sin
+	, acos: Math.acos
+	, asin: Math.asin
+	, halfPI: Math.PI*0.5
+	
+	, init: function(cfg) {
+		this._super(cfg);
+		
+		this.triFrag = document.createDocumentFragment();
+		var tmpDiv = document.createElement('div');
+		tmpDiv.innerHTML = '<div class="a3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden; -Webkit-transform-origin: top left; -moz-transform-origin: top left;">' +
+			'<div class="a3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; -Webkit-transform-origin: top left; -moz-transform-origin: top left; -Webkit-transform: rotate(-45deg); -moz-transform: rotate(-45deg);">' +
+			'<div class="a3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left: -1px; top: 0;">' +
+			'<div class="a3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
+			'<div class="a3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 1px; top: 0; -Webkit-transform-origin: top left; -moz-transform-origin: top left; -Webkit-transform: rotate(45deg); -moz-transform: rotate(45deg);">' +
+			//'<img class="a3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
+			'</div></div></div></div></div>';
+		this.triFrag.appendChild(tmpDiv.firstChild);
+		
+		switch (a3d.$B) {
+			case 'FF':	this.transProp = 'MozTransform';
+			case 'Saf':
+			case 'Chr':	this.transProp = 'WebkitTransform';
+			case 'IE':	this.transProp = 'IE';
+			default:	this.transProp = null;
+		}
+	}
+	
+	, _clear: function() {
+	}
+	
+	, _flip: function() {
+	}
+	
+	, drawPoint: function(pm, col) {
+	}
+	
+	, drawLines: function(pm, col) {
+	}
+	
+	, drawTriangleTexture: function(stri, img) {
+		var tri = stri.tri;
+		var uvm = tri.uvm, iuvm = tri.iuvm;
+		if (!iuvm) return;
+		
+		var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
+		
+		var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
+		var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
+		
+		var winding = d13y*d12x - d13x*d12y;
+		if (winding < 0) {
+			if (stri.node && stri.node.style.display != 'none') {
+				stri.node.style.display = 'none';
+			}
+			return;
+		}
+		
+		var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
+		
+		//rctx.save();
+		
+		// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
+		// from the texture image to the triangle, not counting translation yet
+		var w = img.width, h = img.height;
+		
+		// Ensure existence of the proxy DOM object
+		var node = stri.node, imgNode, unrotNode, offsetNode, cropNode, rotNode;
+		if (!node) {
+			var triFrag = this.triFrag.cloneNode(true);
+			stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
+			
+			stri.unrotNode = unrotNode = node.firstChild;
+			stri.offsetNode = offsetNode = unrotNode.firstChild;
+			stri.cropNode = cropNode = offsetNode.firstChild;
+			stri.rotNode = rotNode = cropNode.firstChild;
+			
+			/*
+			stri.imgNode = imgNode = document.createElement('div');
+			imgNode.style.backgroundColor = '#009999';
+			imgNode.style.width = '' + w + 'px';
+			imgNode.style.height = '' + h + 'px';
+			*/
+			
+			stri.imgNode = imgNode = img.cloneNode(false);
+			imgNode.className = 'a3d-tri-img';
+			imgNode.style.display = 'block';
+			imgNode.style.position = 'absolute';
+			imgNode.style.left = '0';
+			imgNode.style.top = '0';
+			imgNode.style.WebkitTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+			rotNode.appendChild(imgNode);
+			//this.viewport.node.appendChild(imgNode);
+		} else {
+			if (node.style.display != 'block') {
+				node.style.display = 'block';
+			}
+			imgNode = stri.imgNode;
+			unrotNode = stri.unrotNode;
+			offsetNode = stri.offsetNode;
+			cropNode = stri.cropNode;
+			rotNode = stri.rotNode;
+		}
+		
+		// Maybe move the matrix multiply math inline for an optimization?
+		var aff2d = this.sm21;
+		aff2d._11 = d12x; aff2d._12 = d12y;
+		aff2d._21 = d13x; aff2d._22 = d13y;
+		aff2d.mulm(iuvm, aff2d);
+		var aff2d11 = aff2d._11, aff2d12 = aff2d._21, aff2d21 = aff2d._12, aff2d22 = aff2d._22;
+		
+		// Find texture screen position
+		var imgX = tri.originX, imgY = tri.originY;
+		var scrImgX = (imgX*aff2d11 + imgY*aff2d12) | 0
+		  , scrImgY = (imgX*aff2d21 + imgY*aff2d22) | 0;
+		// Find delta vector from texture to triangle
+		var scrDX = v1x - scrImgX, scrDY = v1y - scrImgY;
+		
+		// Find source and destination bounding boxes; requires sorting vertices
+		var x1 = imgX, x2 = imgX + uvm._11, x3 = imgX + uvm._21
+		  , y1 = imgY, y2 = imgY + uvm._12, y3 = imgY + uvm._22
+		
+		var bx1, bx2, bx3, by1, by2, by3, bx1y, bx2y, bx3y;
+		var xTmp, yTmp;
+		
+		// Sort the vertices
+		if (x1 < x2) {
+			if (x1 < x3) {
+				if (x2 < x3) {
+					bx1 = x1; bx2 = x2; bx3 = x3;
+					bx1y = y1; bx2y = y2; bx3y = y3;
+				} else{
+					bx1 = x1; bx2 = x3; bx3 = x2;
+					bx1y = y1; bx2y = y3; bx3y = y2;
+				}
+			} else {
+				bx1 = x3; bx2 = x1; bx3 = x2;
+				bx1y = y3; bx2y = y1; bx3y = y2;
+			}
+		} else {
+			if (x2 < x3) {
+				if (x1 < x3) {
+					bx1 = x2; bx2 = x1; bx3 = x3;
+					bx1y = y2; bx2y = y1; bx3y = y3;
+				} else{
+					bx1 = x2; bx2 = x3; bx3 = x1;
+					bx1y = y2; bx2y = y3; bx3y = y1;
+				}
+			} else {
+				bx1 = x3; bx2 = x2; bx3 = x1;
+				bx1y = y3; bx2y = y2; bx3y = y1;
+			}
+		}
+
+		if (y1 < y2) {
+			if (y1 < y3) {
+				if (y2 < y3) {
+					by1 = y1; by2 = y2; by3 = y3;
+				} else{
+					by1 = y1; by2 = y3; by3 = y2;
+				}
+			} else {
+				by1 = y3; by2 = y1; by3 = y2;
+			}
+		} else {
+			if (y2 < y3) {
+				if (y1 < y3) {
+					by1 = y2; by2 = y1; by3 = y3;
+				} else{
+					by1 = y2; by2 = y3; by3 = y1;
+				}
+			} else {
+				by1 = y3; by2 = y2; by3 = y1;
+			}
+		}
+		
+		var bw = bx3 - bx1, bh = by3 - by1;
+		
+				
+		if (bx1 < 0) bx1 = 0;
+		if (by1 < 0) by1 = 0;
+		
+		m = tri.iuuvm.clone();
+		m.scaleXY(bw/w, bh/h);
+		
+		var pp = new a3d.Vec2(imgX, imgY);
+		pp.trans2(m, pp);
+		m.moveBy(-pp.x, -pp.y);
+		imgNode.style.WebkitTransform = imgNode.style.MozTransform = m.toCssString();
+		
+		var hypot = this.sqrt(bw*bw + bh*bh);
+		var invHypot = 1.0/hypot;
+		var sinTheta = bw*invHypot;
+		//var theta = this.asin(sinTheta);
+		var cosTheta = bh*invHypot;
+		var theta = this.acos(cosTheta);
+		var rotRad = this.halfPI - theta;
+		
+		rotNode.style.WebkitTransform = rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
+		unrotNode.style.WebkitTransform = unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+		
+		unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+		unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+		
+		var cropHeight = bh*sinTheta;
+		cropNode.style.width = '' + hypot + 'px';
+		cropNode.style.height = '' + cropHeight + 'px';
+		
+		var rotOff = bh*cosTheta;
+		rotNode.style.left = '' + rotOff + 'px';
+		offsetNode.style.left = '-' + rotOff + 'px';
+		
+		node.style.left = '' + v1x + 'px';
+		node.style.top = '' + v1y + 'px';
+		
+		//var d12x = bx2 - bx1, d12y = bx2y - bx1y, d13x = bx3 - bx1, d13y = bx3y - bx1y;
+		aff2d._11 = d12x; aff2d._12 = d12y;
+		aff2d._21 = d13x; aff2d._22 = d13y;
+		aff2d.scaleXY(1/bw, 1/bh);
+		node.style.WebkitTransform = node.style.MozTransform = aff2d.toCssString();
+	}
+	
+	, drawTriangleColor: function(stri) {
+		var tri = stri.tri;
+		var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
+		var rctx = this.rctx;
+		
+		var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
+		var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
+		
+		var winding = d13y*d12x - d13x*d12y;
+		if (winding < 0) return;
+		
+	}
+});
 
 a3d.RendererSVG = a3d.RendererBase.extend({
 	  ns: 'http://www.w3.org/2000/svg'
@@ -1109,6 +1351,7 @@ a3d.Triangle = a3d.SceneNode.extend({
 	, center: null
 	, uvm: null			// The texture projection matrix
 	, iuvm: null		// The inverse texture projection matrix
+	, iuuvm: null
 	, originX: 0.0, originY: 0.0	// cache the texture origin calculated from UVs
 	
 	, img: null			// Source texture reference
@@ -1127,6 +1370,7 @@ a3d.Triangle = a3d.SceneNode.extend({
 		
 		this.uvm = new a3d.Mat2();
 		this.iuvm = new a3d.Mat2();
+		this.iuuvm = new a3d.Mat3();
 		
 		this.center = v1.clone().add(v2).add(v3);
 		this.center.div(3.0);
@@ -1163,6 +1407,21 @@ a3d.Triangle = a3d.SceneNode.extend({
 		uvm._21 = d13x; uvm._22 = d13y;
 
 		iuvm.invm(uvm);
+		
+		
+		
+		var v1x = uv1.x, v1y = 1.0 - uv1.y, v2x = uv2.x, v2y = 1.0 - uv2.y, v3x = uv3.x, v3y = 1.0 - uv3.y;
+		//var v1x = uv1.x, v1y = uv1.y, v2x = uv2.x, v2y = uv2.y, v3x = uv3.x, v3y = uv3.y;
+		
+		var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
+		var uuvm = new a3d.Mat3();
+		uuvm._11 = d12x; uuvm._12 = d12y;
+		uuvm._21 = d13x; uuvm._22 = d13y;
+		uuvm.moveTo(v1x, v1y);
+
+		//console.log(uuvm.toString());
+		this.iuuvm.invm(uuvm);
+		//console.log(this.iuuvm.toString());
 	}
 	
 	, _render: function(r) {
@@ -1245,7 +1504,7 @@ a3d.MeshLoader = {
 				case 'f ': {
 					var vvv = a3d.trim(line.substr(2).replace(dblSpace, ' ')).split(' ');
 					var vvvl = vvv.length;
-					//if (fs.length > 0) return;
+					i = lineCount;
 					
 					var fvs = [], fuvs = [], fvns = [];
 					for (var j = 0; j < vvvl; ++j) {

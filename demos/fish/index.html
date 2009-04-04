@@ -4,12 +4,17 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 		<title>Adamia 3D Fish Demo</title>
 		
-		<link rel="stylesheet" type="text/css" href=http://yui.yahooapis.com/2.7.0/build/reset-fonts/reset-fonts.css"> 
+		<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts/reset-fonts.css"> 
 		<style type="text/css">
+			body {
+				margin: 0;
+				padding: 0;
+			}
 			#viewport {
 				background-color: #000000;
 				width: 400px;
 				height: 300px;
+				position: relative;
 			}
 		</style>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
@@ -20,8 +25,7 @@
 				var v = adamia3d.init('viewport');
 				
 				var mesh;
-				
-				
+					
 				a3d.MeshLoader.loadOBJ('piranha.obj', function(meshes) {
 					mesh = meshes[0];
 					mesh.addTextureUrl('piranhaSkin.jpg');
@@ -36,6 +40,8 @@
 				
 				v.onTick(function(dt) {
 					if (mesh) mesh.rotY(2.5*dt);
+					
+					//$('#monkey').css('webkitTransform', 'rotate(' + 2*dt + 'rad)');
 				});
 				
 				$('#render-options').find('input[name=a3d-projection]').click(function() {
@@ -44,6 +50,14 @@
 					v.camera.projection = (proj == 'persp') ? a3d.Render.Projection.PERSP : a3d.Render.Projection.ORTHO;
 					v.resize();
 				});
+				
+				 $('#viewport').mousemove(function(e){
+				      var pageCoords = "( " + e.pageX + ", " + e.pageY + " )";
+				      var clientCoords = "( " + e.clientX + ", " + e.clientY + " )";
+				      $("span:first").text("( e.pageX, e.pageY ) - " + pageCoords);
+				      $("span:last").text("( e.clientX, e.clientY ) - " + clientCoords);
+				 });
+				
 			}
 		</script>
 	</head>
@@ -56,5 +70,54 @@
 		<script type="text/javascript">
 			do3d();
 		</script>
+		<span>Move the mouse over the div.</span>
+	    <span> </span>
+		
+		<!--
+		<div style="position: absolute; border: 1px solid #00EE00; width: 50px; height: 50px; left: -10.3553391px; top: 0; -webkit-transform: rotate(-45deg);">
+			<div style="position: absolute; border: 1px solid #0033FF; width: 70.7106781px; height: 35.3553391px; left: 0; top: 0; overflow: hidden;">
+				<div style="position: absolute; border: 1px solid #990000; width: 50px; height: 50px; left: 10.3553391px; top: 10.3553391px; -webkit-transform: rotate(45deg);">
+					<div style="position: absolute; background-color: #0099AA; width: 50px; height: 50px; left: 0; top: 0; -webkit-transform: matrix(1.0, 0.0, -0.0, 1.0, 0, 0);"></div>
+				</div>
+			</div>
+		</div>
+		-->
+		
+		<div class="a3d-tri" style="border: 1px solid #993333; position: absolute; width: 50px; height: 50px; left: 5px; top: 500px;">
+			<div class="a3d-tri-unrot" style="position: absolute; width: 50px; height: 50px; left: -14.6446609px; top: 0; -moz-transform-origin: top left; -webkit-transform: rotate(-45deg);">
+				<div class="a3d-tri-crop" style="position: absolute; width: 70.7106781px; height: 35.3553391px; left: 0; top: 0; overflow: hidden;">
+					<div class="a3d-tri-rot" style="position: absolute; width: 50px; height: 50px; left: 10.3553391px; top: 10.3553391px; -webkit-transform: rotate(45deg);">
+						<div style="position: absolute; background-color: #0099AA; width: 50px; height: 80px; left: 0; top: 0; -webkit-transform: matrix(1.0, 0.0, -0.0, 1.0, 0, 0);"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- <div class="a3d-tri" style="border: 1px solid #993333; position: absolute; width: 94.3398px; height: 40px; left: 50px; top: 600px;"> -->
+		<div class="a3d-tri" style="position: absolute; width: 50px; height: 80px; left: 250px; top: 600px;">
+			<div class="a3d-tri-unrot" style="position: absolute; width: 50px; height: 80px; left: 0; top: 0; -webkit-transform-origin: top left; -webkit-transform: rotate(-0.72401rad);">
+				<div class="a3d-tri-offset" style="position: absolute; width: 50px; height: 80px; left: -67.843847px; top: 0;">
+					<div class="a3d-tri-crop" style=" position: absolute; width: 94.3398px; height: 42.3994px; left: 0; top: 0;">
+						<div class="a3d-tri-rot" style="position: absolute; width: 50px; height: 80px; left: 67.843847px; top: 0px; -webkit-transform-origin: top left; -webkit-transform: rotate(0.72401rad);">
+							<div style="position: absolute; background-color: #0099AA; width: 50px; height: 80px; left: 0; top: 0; -webkit-transform: matrix(1.0, 0.0, -0.0, 1.0, 0, 0);"></div>
+							<!-- <img src="piranhaSkin.jpg" class="a3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div style="overflow: hidden; position: absolute; width: 30.0559px; height: 33.9927px; left: 196.729px; top: 119.222px; -webkit-transform-origin: top left; -webkit-transform: matrix(0.0678597, -0.829448, 0.125895, -0.518622, 0pt, 0pt); display: block;" class="a3d-tri"><div style="position: absolute; width: 30.0559px; height: 33.9927px; left: 0pt; top: 0pt; -webkit-transform-origin: top left; -webkit-transform: rotate(-0.846786rad);" class="a3d-tri-unrot"><div style="position: absolute; width: 30.0559px; height: 33.9927px; left: -25.4658px; top: 0pt;" class="a3d-tri-offset"><div style="overflow: hidden; position: absolute; width: 45.3747px; height: 22.5166px; left: 0pt; top: 0pt;" class="a3d-tri-crop"><div style="position: absolute; width: 30.0559px; height: 33.9927px; left: 25.4658px; top: 0pt; -webkit-transform-origin: left top; -webkit-transform: rotate(0.846786rad);" class="a3d-tri-rot"><img src="piranhaSkin.jpg" class="a3d-tri-img" style="display: block; position: absolute; left: 0pt; top: 0pt; -webkit-transform-origin: top left;"/></div></div></div></div></div>
+		
+		<div class="a3d-tri-rot" style="position: absolute; width: 50px; height: 80px; left: 67.843847px; top: 400px; -moz-transform-origin: top left; -webkit-transform-origin: top left; -moz-transform: rotate(58deg); -webkit-transform: rotate(58deg);">
+			<div style="position: absolute; background-color: #0099AA; width: 50px; height: 80px; left: 0; top: 0;"></div>
+			<!-- <img src="piranhaSkin.jpg" class="a3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
+		</div>
+
+		<!--
+		<div style="position: absolute; border: 1px solid #990000; width: 50px; height: 50px; left: 10.3553391px; top: 550px; -webkit-transform: rotate(45deg);">
+			<div style="position: absolute; background-color: #0099AA; width: 50px; height: 50px; left: 0; top: 0; -webkit-transform: matrix(1.0, 0.0, -0.0, 1.0, 0, 0);"></div>
+		</div>
+		-->
 	</body>
 </html>
