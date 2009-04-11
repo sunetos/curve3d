@@ -288,16 +288,16 @@ a3d.Vec2 = a3d.MathClass.extend({
 	, trans: function(m, v) {
 		var vx = v.x, vy = v.y;
 		
-		this.x = m._11*vx + m._12*vy + m._13;
-		this.y = m._21*vx + m._22*vy + m._23;
+		this.x = m._11*vx + m._21*vy + m._13;
+		this.y = m._12*vx + m._22*vy + m._23;
 		
 		return this;
 	}
 	, trans2: function(m, v) {
 		var vx = v.x, vy = v.y;
 		
-		this.x = m._11*vx + m._12*vy;
-		this.y = m._21*vx + m._22*vy;
+		this.x = m._11*vx + m._21*vy;
+		this.y = m._12*vx + m._22*vy;
 		
 		return this;
 	}
@@ -832,8 +832,16 @@ a3d.Mat3 = a3d.MathClass.extend({
 		']]';
 	}
 	, toCssString: function() {
-		//return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
-		return 'matrix(' + [this._11, this._21, this._12, this._22, this._13, this._23].join(',') + ')';
+		return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
+		//return 'matrix(' + [this._11, this._21, this._12, this._22, this._13, this._23].join(',') + ')';
+	}
+	, applyIeFilter: function(node) {
+		if (!node.filters['DXImageTransform.Microsoft.Matrix']) {
+			node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
+		}
+		var f = node.filters['DXImageTransform.Microsoft.Matrix'];
+		f.M11 = this._11; f.M12 = this._21;
+		f.M21 = this._12; f.M22 = this._22;
 	}
 });
 
@@ -948,6 +956,14 @@ a3d.Mat2 = a3d.MathClass.extend({
 	, toCssString: function() {
 		return 'matrix(' + [this._11, this._12, this._21, this._22, 0, 0].join(',') + ')';
 		//return 'matrix(' + [this._11, this._21, this._12, this._22, 0, 0].join(',') + ')';
+	}
+	, applyIeFilter: function(node) {
+		if (!node.filters['DXImageTransform.Microsoft.Matrix']) {
+			node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+		}
+		var f = node.filters['DXImageTransform.Microsoft.Matrix'];
+		f.M11 = this._11; f.M12 = this._21;
+		f.M21 = this._12; f.M22 = this._22;
 	}
 });
 
