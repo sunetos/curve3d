@@ -930,7 +930,7 @@ var dummyCounter = 0;
 
 a3d.RendererCss3 = a3d.RendererBase.extend({
 	  triFrag: null		// Cache a DOM fragment for triangle proxy node trees
-	, transProp: ''		// WebkitTransform, MozTransform, etc.
+	, $B: 1				// Fake enum for browser-specific logic
 	, sqrt: Math.sqrt
 	, cos: Math.cos
 	, sin: Math.sin
@@ -943,21 +943,22 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		
 		this.triFrag = document.createDocumentFragment();
 		var tmpDiv = document.createElement('div');
-		tmpDiv.innerHTML = '<div class="a3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden; -Webkit-transform-origin: 0 0; -moz-transform-origin: top left;">' +
-			'<div class="a3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; -Webkit-transform-origin: top left; -moz-transform-origin: 0 0; -Webkit-transform: rotate(-45deg); -moz-transform: rotate(-45deg);">' +
-			'<div class="a3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left: -1px; top: 0;">' +
+		tmpDiv.innerHTML = '<div class="a3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
+			'<div class="a3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+			'<div class="a3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left:0; top: 0;">' +
 			'<div class="a3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
-			'<div class="a3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 1px; top: 0; -Webkit-transform-origin: top left; -moz-transform-origin: 0 0; -Webkit-transform: rotate(45deg); -moz-transform: rotate(45deg);">' +
+			//'<div class="a3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+			'<div class="a3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
 			//'<img class="a3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
 			'</div></div></div></div></div>';
 		this.triFrag.appendChild(tmpDiv.firstChild);
 		
 		switch (a3d.$B) {
-			case 'FF':	this.transProp = 'MozTransform'; break;
+			case 'FF':	this.$B = 1; break;
 			case 'Saf':
-			case 'Chr':	this.transProp = 'WebkitTransform'; break;
-			case 'IE':	this.transProp = 'IE'; break;
-			default:	this.transProp = null; break;
+			case 'Chr':	this.$B = 2; break;
+			case 'IE':	this.$B = 3; break;
+			default:	this.$B = null; break;
 		}
 	}
 	
@@ -1032,22 +1033,54 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			pp.x = imgX; pp.y = imgY;
 			pp.trans(m, pp);
 			
-			if (this.transProp == 'IE') {
-				m.applyIeFilter(imgNode);
+			// Small optimization for square textures
+			var hypot, sinTheta, cosTheta, theta, rotRad;
+			if (bw == bh) {
+				hypot = 1.414213562373*bw;
+				sinTheta = cosTheta = 0.707106781186;
+				theta = rotRad = 0.785398163397;
 			} else {
-				imgNode.style.WebkitTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
-				imgNode.style.WebkitTransform = imgNode.style.MozTransform = m.toCssString();	
+				hypot = this.sqrt(bw*bw + bh*bh);
+				var invHypot = 1.0/hypot;
+				sinTheta = bw*invHypot;
+				//theta = this.asin(sinTheta);
+				cosTheta = bh*invHypot;
+				theta = this.acos(cosTheta);
+				rotRad = this.halfPI - theta;
 			}
 			
-			var hypot = this.sqrt(bw*bw + bh*bh);
-			var invHypot = 1.0/hypot;
-			var sinTheta = bw*invHypot;
-			//var theta = this.asin(sinTheta);
-			var cosTheta = bh*invHypot;
-			var theta = this.acos(cosTheta);
-			var rotRad = this.halfPI - theta;
+			var cropHeight = bh*sinTheta;
+			var rotOff = bh*cosTheta;
 			
-			if (this.transProp == 'IE') {
+			if (this.$B == 1) {	// FF
+				node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+				imgNode.style.MozTransform = m.toCssString();
+				
+				rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
+				rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
+				unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+				
+				rotNode.style.left = '' + rotOff + 'px';
+				offsetNode.style.left = '-' + rotOff + 'px';
+				
+				unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+			} else if (this.$B == 2) { // Webkit
+				node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
+				imgNode.style.WebkitTransform = m.toCssString();
+				
+				rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
+				rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
+				unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
+				
+				rotNode.style.left = '' + rotOff + 'px';
+				offsetNode.style.left = '-' + rotOff + 'px';
+				
+				unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+			} else if (this.$B == 3) { // IE
+				m.applyIeFilter(imgNode);
+				
 				rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 				unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 				
@@ -1063,27 +1096,32 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
 				f.M11 = cosIRot; f.M12 = -sinIRot;
 				f.M21 = sinIRot; f.M22 = cosIRot;
-			} else {
-				rotNode.style.WebkitTransform = rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
-				unrotNode.style.WebkitTransform = unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+				
+				node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+				unrotNode.style.width = '' + hypot + 'px';
+				unrotNode.style.left = '' + (-bw*0.5) + 'px';
+				unrotNode.style.top = '' + (-bh*0.5) + 'px';
 			}
 			
-			unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-			unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
-			
-			var cropHeight = bh*sinTheta;
 			cropNode.style.width = '' + hypot + 'px';
 			cropNode.style.height = '' + cropHeight + 'px';
-			
-			var rotOff = bh*cosTheta;
-			rotNode.style.left = '' + rotOff + 'px';
-			offsetNode.style.left = '-' + rotOff + 'px';
 			
 			stri.bw = bw; stri.bh = bh;
 			stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
 			
+			//imgNode.style.left = '' + (-(pp.x + 64)) + 'px';
 			imgNode.style.left = '' + (-pp.x) + 'px';
 			imgNode.style.top = '' + (-pp.y) + 'px';
+			
+			/*			
+			var img2 = imgNode.cloneNode(false);
+			document.body.appendChild(img2);
+			//this.viewport.node.appendChild(img2);
+			if (this.transProp == 'IE')
+				m.applyIeFilter(img2);
+			console.log(img2);
+			*/
 		} else {
 			if (node.style.display != 'block') {
 				node.style.display = 'block';
@@ -1101,11 +1139,16 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		aff2d._21 = d13x; aff2d._22 = d13y;
 		
 		aff2d.scaleXY(stri.invBw, stri.invBh);
-		if (this.transProp == 'IE') {
+		
+		if (this.$B == 1) {	// FF
+			node.style.MozTransform = aff2d.toCssString();	
+		} else if (this.$B == 2) { // Webkit
+			node.style.WebkitTransform = aff2d.toCssString();	
+		} else if (this.$B == 3) { // IE
 			aff2d.applyIeFilter(node);
-		} else {
-			node.style.WebkitTransform = node.style.MozTransform = aff2d.toCssString();	
+			if (dummyCounter++ == 0) a3d.trace(node.outerHTML);
 		}
+		
 		node.style.left = '' + v1x + 'px';
 		node.style.top = '' + v1y + 'px';
 	}
@@ -1135,9 +1178,13 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		var w = 64, h = 64;
 		
 		// Ensure existence of the proxy DOM object
-		var node = stri.node, imgNode, unrotNode, offsetNode, cropNode, rotNode;
+		var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
 		//console.log(imgNode.nodeName);
-		if (!node || imgNode.nodeName != 'img') {
+		if (!node || !imgNode || imgNode.nodeName != 'div') {
+			// Cleanup other render types
+			if (node) node.parentNode.removeChild(node);
+			if (imgNode) imgNode.parentNode.removeChild(imgNode);
+			
 			var triFrag = this.triFrag.cloneNode(true);
 			stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
 			
@@ -1154,7 +1201,6 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			imgNode.style.position = 'absolute';
 			imgNode.style.left = '0';
 			imgNode.style.top = '0';
-			imgNode.style.WebkitTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
 			rotNode.appendChild(imgNode);
 			//this.viewport.node.appendChild(imgNode);
 			
@@ -1162,27 +1208,63 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			
 			var bw = w, bh = h;
 			
-			var hypot = this.sqrt(bw*bw + bh*bh);
-			var invHypot = 1.0/hypot;
-			var sinTheta = bw*invHypot;
-			//var theta = this.asin(sinTheta);
-			var cosTheta = bh*invHypot;
-			var theta = this.acos(cosTheta);
-			var rotRad = this.halfPI - theta;
-			
-			rotNode.style.WebkitTransform = rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
-			unrotNode.style.WebkitTransform = unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
-			
-			unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-			unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+			var hypot = 1.414213562373*bw,
+			    sinTheta = cosTheta = 0.707106781186,
+			    theta = rotRad = 0.785398163397;
 			
 			var cropHeight = bh*sinTheta;
+			var rotOff = bh*cosTheta;
+			
+			if (this.$B == 1) {	// FF
+				node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+				
+				rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
+				rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
+				unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+				
+				rotNode.style.left = '' + rotOff + 'px';
+				offsetNode.style.left = '-' + rotOff + 'px';
+				
+				unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+			} else if (this.$B == 2) { // Webkit
+				node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
+				
+				rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
+				rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
+				unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
+				
+				rotNode.style.left = '' + rotOff + 'px';
+				offsetNode.style.left = '-' + rotOff + 'px';
+				
+				unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+			} else if (this.$B == 3) { // IE
+				rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+				unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+				
+				var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
+				console.log(cosRot);
+				console.log(sinRot);
+				var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
+				f.M11 = cosRot; f.M12 = -sinRot;
+				f.M21 = sinRot; f.M22 = cosRot;
+				
+				var irotRad = -rotRad;
+				var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
+				var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
+				f.M11 = cosIRot; f.M12 = -sinIRot;
+				f.M21 = sinIRot; f.M22 = cosIRot;
+				
+				node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+				unrotNode.style.width = '' + hypot + 'px';
+				unrotNode.style.left = '' + (bw*0.5) + 'px';
+				unrotNode.style.top = '' + (bh*0.5) + 'px';
+			}
+			
 			cropNode.style.width = '' + hypot + 'px';
 			cropNode.style.height = '' + cropHeight + 'px';
-			
-			var rotOff = bh*cosTheta;
-			rotNode.style.left = '' + rotOff + 'px';
-			offsetNode.style.left = '-' + rotOff + 'px';
 			
 			stri.bw = bw; stri.bh = bh;
 			stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
@@ -1205,11 +1287,15 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		
 		
 		aff2d.scaleXY(stri.invBw, stri.invBh);
-		if (this.transProp == 'IE') {
+		
+		if (this.$B == 1) {	// FF
+			node.style.MozTransform = aff2d.toCssString();	
+		} else if (this.$B == 2) { // Webkit
+			node.style.WebkitTransform = aff2d.toCssString();	
+		} else if (this.$B == 3) { // IE
 			aff2d.applyIeFilter(node);
-		} else {
-			node.style.WebkitTransform = node.style.MozTransform = aff2d.toCssString();	
 		}
+		
 		node.style.left = '' + v1x + 'px';
 		node.style.top = '' + v1y + 'px';
 	}
@@ -1591,7 +1677,7 @@ a3d.MeshLoader = {
 		
 		var objl = objs.length;
 		for (var i = 0; i < objl; ++i) {
-			//objs[i].data.fs = objs[i].data.fs.slice(8, 10);
+			objs[i].data.fs = objs[i].data.fs.slice(9, 10);
 			objs[i].build();
 		}
 		
