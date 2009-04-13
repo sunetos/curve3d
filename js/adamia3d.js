@@ -1677,7 +1677,7 @@ a3d.MeshLoader = {
 		
 		var objl = objs.length;
 		for (var i = 0; i < objl; ++i) {
-			objs[i].data.fs = objs[i].data.fs.slice(9, 10);
+			//objs[i].data.fs = objs[i].data.fs.slice(9, 10);
 			objs[i].build();
 		}
 		
