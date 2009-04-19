@@ -1,0 +1,251 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>Adamia 3D IE Transform Experiment</title>
+		
+		<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts/reset-fonts.css">
+		<link type="text/css" href="css/jquery-ui-1.7.1.custom.css" rel="Stylesheet" />	
+		
+		<style type="text/css">
+			body {
+				margin: 0;
+				padding: 16px;
+			}
+			#matrix-sliders {
+				width: 260px;
+				display: block;
+				float: left;
+			}
+			#matrix-sliders td {
+				padding: 5px;
+			}
+			.matrixSlider {
+				width: 100px;
+			}
+			.matrixValue {
+				width: 24px;
+			}
+			
+			#viewport {
+				background-color: #F9F9F9;
+				width: 500px;
+				height: 500px;
+				position: relative;
+				border: 1px solid black;
+				float: left;
+			}
+			#x-axis {
+				width: 500px;
+				height: 1px;
+				position: absolute;
+				background-color: black;
+				left: 0;
+				top: 250px;
+			}
+			#y-axis {
+				width: 1px;
+				height: 500px;
+				position: absolute;
+				background-color: black;
+				left: 250px;
+				top: 0;
+			}
+			#x-axis-label, #y-axis-label {
+				width: 80px;
+				height: 20px;
+				position: absolute;
+			}
+			#x-axis-label {
+				left: 506px;
+				top: 242px;
+			}
+			#y-axis-label {
+				left: 230px;
+				top: 504px;
+			}
+			
+			#square {
+				width: 20px;
+				height: 20px;
+				position: absolute;
+				background-color: #99CCCC;
+				left: 250px;
+				top: 250px;
+				border: 1px solid black;
+				
+				-moz-transform-origin: top left;
+				-webkit-transform-origin: top left;
+			}
+			#square div {
+				width: 2px;
+				height: 2px;
+				position: absolute;
+				z-index: 10;
+			}
+			#square-v1 {
+				background-color: #FF0000;
+				left: 0;
+				top: 0;
+			}
+			#square-v2 {
+				background-color: #00FF00;
+				left: 18px;
+				top: 0;
+			}
+			#square-v3 {
+				background-color: #0033FF;
+				left: 18px;
+				top: 18px;
+			}
+			#square-v4 {
+				background-color: #FFFF66;
+				left: 0;
+				top: 18px;
+			}
+			
+			#origin {
+				width: 16px;
+				height: 16px;
+				position: absolute;
+				z-index: 20;
+				left: 242px;
+				top: 242px;
+				background-image: url(css/images/crosshair.png);
+			}
+		</style>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+		
+		<script src="../../js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			
+			var m = new a3d.Mat3();
+			var origin = null;
+			var originNode = null;
+			var square = null;
+			var squareNode = null;
+			
+			function updateMat() {
+				m._11 = parseFloat($('#matrix-m11 .matrixValue').val());
+				m._12 = parseFloat($('#matrix-m12 .matrixValue').val());
+				m._21 = parseFloat($('#matrix-m21 .matrixValue').val());
+				m._22 = parseFloat($('#matrix-m22 .matrixValue').val());
+				m._13 = parseFloat($('#matrix-m13 .matrixValue').val());
+				m._23 = parseFloat($('#matrix-m23 .matrixValue').val());
+				if (isNaN(m._11) || isNaN(m._12) || isNaN(m._21) || isNaN(m._22) || isNaN(m._13) || isNaN(m._23)) return;
+				
+				var w = parseFloat(square.css('width')), h = parseFloat(square.css('height'));
+				
+				var originPos = new a3d.Vec2(0, 0);
+				if (a3d.$B == 'IE') {
+					if (m._11 < 0) originPos.x -= w*m._11;
+					if (m._21 < 0) originPos.x -= w*m._21;
+					if (m._22 < 0) originPos.y -= h*m._22;
+					if (m._12 < 0) originPos.y -= h*m._12;
+				}
+				
+				//alert($('#x-axis').css('left'));
+				originPos.x += parseFloat($('#y-axis').css('left'));
+				originPos.y += parseFloat($('#x-axis').css('top'));
+				//alert(origin.width());
+				originPos.x -= origin.width()*0.5;
+				originPos.y -= origin.height()*0.5;
+				
+				originNode.style.left = '' + originPos.x + 'px';
+				originNode.style.top = '' + originPos.y + 'px';
+				
+				var v1x = $('#square-v1').get(0).offsetLeft;
+				var v1y = $('#square-v1').get(0).offsetTop;
+				
+				if (a3d.$B == 'FF') {
+					squareNode.style.MozTransform = m.toCssString();
+				} else if (a3d.$B == 'Saf' || a3d.$B == 'Chr') {
+					squareNode.style.WebkitTransform = m.toCssString();
+				} else if (a3d.$B == 'IE') {
+					m.applyIeFilter(squareNode);
+				}
+			}
+			
+			$(document).ready(function() {
+				square = $('#square');
+				squareNode = square.get(0);
+				origin = $('#origin');
+				originNode = origin.get(0);
+				
+				// change defaults for range, animate and orientation
+				$.extend($.ui.slider.defaults, {
+					//range: "min",
+					min: -9.9,
+					max: 9.9,
+					step: 0.1,
+					animate: true,
+					orientation: "horizontal"
+				});
+				$('.matrixSlider').each(function() {
+					var valField = $(this).parent().parent().find('.matrixValue');
+					var slideVal = parseFloat(valField.val());
+					$(this).empty();
+					var slider = $(this).slider({
+						  value: slideVal
+						, slide: function(e, ui) {
+							valField.val(ui.value);
+							
+							updateMat();
+						}  
+					});
+					valField.bind('keydown keyup change', function() {
+						var newVal = parseFloat($(this).val());
+						if (isNaN(newVal)) return;
+						slider.slider('value', newVal);
+						
+						updateMat();
+					});
+				});
+				
+				var defaults = {'m11': 1.0, 'm12': 0.0, 'm21': 0.0, 'm22': 1.0, 'm13': 0.0, 'm23': 0.0};
+				$('.matrixReset').click(function() {
+					var row = $(this).parent().parent();
+					var mId = row.attr('id').split('-')[1];
+					row.find('.matrixValue').val(defaults[mId]);
+					row.find('.matrixSlider').slider('value', parseFloat(defaults[mId]));
+					
+					updateMat();
+				});
+				
+				
+			});
+					
+		</script>
+	</head>
+	<body>
+		
+		<table id="matrix-sliders">
+			<tr id="matrix-m11"><td>M11: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="1.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+			<tr id="matrix-m12"><td>M12: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="0.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+			<tr id="matrix-m21"><td>M21: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="0.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+			<tr id="matrix-m22"><td>M22: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="1.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+			<tr id="matrix-m13"><td>M13: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="0.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+			<tr id="matrix-m23"><td>M23: </td><td><div class="matrixSlider"></div></td><td><input type="text" class="matrixValue" value="0.0" /></td><td><input type="button" class="matrixReset" value="Reset" /></td></tr>
+		</table>
+		
+		<div id="viewport">
+			<div id="x-axis"></div>
+			<div id="y-axis"></div>
+			<div id="x-axis-label">X axis</div>
+			<div id="y-axis-label">Y axis</div>
+			
+			<div id="square">
+				<div id="square-v1"></div>
+				<div id="square-v2"></div>
+				<div id="square-v3"></div>
+				<div id="square-v4"></div>	
+			</div>
+			
+			<div id="origin"></div>
+		</div>
+		
+
+	</body>
+</html>

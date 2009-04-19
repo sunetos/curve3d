@@ -19,7 +19,7 @@ adamia3d = function() {
 		//a3d.trace(BrowserDetect.browser);
 		var v = viewports[viewportId] = new a3d.Viewport(viewportId);
 		
-		v.play();
+		//v.play();
 		
 		return v;
 	}
@@ -103,6 +103,14 @@ a3d.numCmp = function(a, b) {
 	return (a - b);
 }
 
+a3d.vecCmp = function(v1, v2) {
+	//var dx = v1.x - v2.x;
+	//return (dx == 0) ? (v1.y - v2.y) : dx;
+	//var dy = v1.y - v2.y;
+	//return (dy == 0) ? (v1.x - v2.x) : dy;
+	return v1.y - v2.y;
+}
+
 // Minimalist ajax data fetcher. Only intended for loading models.
 // Async is the only support mode, no intention of allowing synchronous in JS.
 // Built off of jQuery 1.3.2 source by deleting 90% of the ajax() function.
@@ -176,6 +184,8 @@ a3d.Viewport = Class.extend({
 	, intervalId: 0
 	, startT: 0
 	, lastT: 0
+	, simT: 0	// number of seconds based on interval time
+	, frameCount: 0
 
 	// viewportId is the id of a DOM node that is in the body of the document and "ready."
 	// rendererClass lets you choose the rendering pipeline. If you don't supply one,
@@ -251,12 +261,28 @@ a3d.Viewport = Class.extend({
 	
 	, tick: function() {
 		var dt = 0.0;
+		var inter = this.interval;
+		++this.frameCount;
+		
 		if (this.startT) {
 			var thisT = (new Date()).getTime();
-			dt = (thisT - this.lastT)*0.001;
+			var dtMs = thisT - this.lastT;
+			this.simT += inter;
+			
+			// Skip frames instead of queueing them up.
+			// Let the next frame calculate the new DT that
+			// spans both frames
+			if (dtMs < inter*0.5) {
+				//a3d.trace('skipping a simulation frame');
+				return;
+			}
+			
 			this.lastT = thisT;
+			
+			dt = dtMs*0.001;
 		} else {
 			this.lastT = this.startT = (new Date()).getTime();
+			this.simT += inter;
 		}
 		
 		var tk = this.tickers;
@@ -267,6 +293,12 @@ a3d.Viewport = Class.extend({
 		var cam = this.camera;
 		cam.update(dt);
 		this.scene.update(cam.invM, dt);				// update geometry
+		
+		// Skip render frames instead of queueing them up
+		if (dtMs > inter*1.5) {
+			//a3d.trace('skipping a render frame');
+			//return;
+		}
 		this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
 	}
 });
@@ -1085,8 +1117,6 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 				
 				var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
-				console.log(cosRot);
-				console.log(sinRot);
 				var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
 				f.M11 = cosRot; f.M12 = -sinRot;
 				f.M21 = sinRot; f.M22 = cosRot;
@@ -1102,6 +1132,15 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				unrotNode.style.width = '' + hypot + 'px';
 				unrotNode.style.left = '' + (-bw*0.5) + 'px';
 				unrotNode.style.top = '' + (-bh*0.5) + 'px';
+				
+				var offX = 0.0, offY = 0.0;
+			
+				if (m._11 < 0) offX += m._11;
+				if (m._21 < 0) offX += m._21;
+				if (m._12 < 0) offY += m._12;
+				if (m._22 < 0) offY += m._22;
+				
+				pp.x -= offX*bw; pp.y -= offY*bh;
 			}
 			
 			cropNode.style.width = '' + hypot + 'px';
@@ -1118,9 +1157,9 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			var img2 = imgNode.cloneNode(false);
 			document.body.appendChild(img2);
 			//this.viewport.node.appendChild(img2);
-			if (this.transProp == 'IE')
+			if (this.$B == 3)
 				m.applyIeFilter(img2);
-			console.log(img2);
+			//console.log(img2);
 			*/
 		} else {
 			if (node.style.display != 'block') {
@@ -1141,16 +1180,32 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		aff2d.scaleXY(stri.invBw, stri.invBh);
 		
 		if (this.$B == 1) {	// FF
-			node.style.MozTransform = aff2d.toCssString();	
+			node.style.MozTransform = aff2d.toCssString();
+			
+			node.style.left = '' + v1x + 'px';
+			node.style.top = '' + v1y + 'px';
 		} else if (this.$B == 2) { // Webkit
-			node.style.WebkitTransform = aff2d.toCssString();	
+			node.style.WebkitTransform = aff2d.toCssString();
+			
+			node.style.left = '' + v1x + 'px';
+			node.style.top = '' + v1y + 'px';
 		} else if (this.$B == 3) { // IE
 			aff2d.applyIeFilter(node);
-			if (dummyCounter++ == 0) a3d.trace(node.outerHTML);
+			
+			// Account for the fact that IE's "auto expand" matrix offsets the origin.
+			// Took forever to arrive at this elegant, mathematically correct fix.
+			var offX = 0.0, offY = 0.0;
+			
+			if (d12x < 0) offX += d12x;
+			if (d13x < 0) offX += d13x;
+			if (d12y < 0) offY += d12y;
+			if (d13y < 0) offY += d13y;
+			
+			var screenX = v1x + offX, screenY = v1y + offY;
+			
+			node.style.left = '' + screenX + 'px';
+			node.style.top = '' + screenY + 'px';
 		}
-		
-		node.style.left = '' + v1x + 'px';
-		node.style.top = '' + v1y + 'px';
 	}
 	
 	, drawTriangleColor: function(stri) {
@@ -1180,7 +1235,7 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		// Ensure existence of the proxy DOM object
 		var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
 		//console.log(imgNode.nodeName);
-		if (!node || !imgNode || imgNode.nodeName != 'div') {
+		if (!node || !imgNode || imgNode.nodeName != 'DIV') {
 			// Cleanup other render types
 			if (node) node.parentNode.removeChild(node);
 			if (imgNode) imgNode.parentNode.removeChild(imgNode);
@@ -1244,8 +1299,8 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 				
 				var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
-				console.log(cosRot);
-				console.log(sinRot);
+				//console.log(cosRot);
+				//console.log(sinRot);
 				var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
 				f.M11 = cosRot; f.M12 = -sinRot;
 				f.M21 = sinRot; f.M22 = cosRot;
@@ -1259,8 +1314,8 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 				unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
 				unrotNode.style.width = '' + hypot + 'px';
-				unrotNode.style.left = '' + (bw*0.5) + 'px';
-				unrotNode.style.top = '' + (bh*0.5) + 'px';
+				unrotNode.style.left = '' + (-bw*0.5) + 'px';
+				unrotNode.style.top = '' + (-bh*0.5) + 'px';
 			}
 			
 			cropNode.style.width = '' + hypot + 'px';
@@ -1289,15 +1344,32 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		aff2d.scaleXY(stri.invBw, stri.invBh);
 		
 		if (this.$B == 1) {	// FF
-			node.style.MozTransform = aff2d.toCssString();	
+			node.style.MozTransform = aff2d.toCssString();
+			
+			node.style.left = '' + v1x + 'px';
+			node.style.top = '' + v1y + 'px';
 		} else if (this.$B == 2) { // Webkit
-			node.style.WebkitTransform = aff2d.toCssString();	
+			node.style.WebkitTransform = aff2d.toCssString();
+			
+			node.style.left = '' + v1x + 'px';
+			node.style.top = '' + v1y + 'px';
 		} else if (this.$B == 3) { // IE
 			aff2d.applyIeFilter(node);
+			
+			// Account for the fact that IE's "auto expand" matrix offsets the origin.
+			// Took forever to arrive at this elegant, mathematically correct fix.
+			var offX = 0.0, offY = 0.0;
+			
+			if (d12x < 0) offX += d12x;
+			if (d13x < 0) offX += d13x;
+			if (d12y < 0) offY += d12y;
+			if (d13y < 0) offY += d13y;
+			
+			var screenX = v1x + offX, screenY = v1y + offY;
+			
+			node.style.left = '' + screenX + 'px';
+			node.style.top = '' + screenY + 'px';
 		}
-		
-		node.style.left = '' + v1x + 'px';
-		node.style.top = '' + v1y + 'px';
 	}
 });
 
@@ -1677,7 +1749,8 @@ a3d.MeshLoader = {
 		
 		var objl = objs.length;
 		for (var i = 0; i < objl; ++i) {
-			//objs[i].data.fs = objs[i].data.fs.slice(9, 10);
+			//objs[i].data.fs = objs[i].data.fs.slice(0, 50);
+			//objs[i].data.fs = objs[i].data.fs.slice(0, 1);
 			objs[i].build();
 		}
 		
@@ -1742,12 +1815,14 @@ a3d.$TexLib = new a3d.TextureLib();
 a3d.Mesh = a3d.SceneNode.extend({
 	  data: null
 	, textures: null
+	, hasTexture: false
 	, stris: null
 	
 	, init: function(data) {
 		this._super();
 		
 		this.data = (data) ? data : null;
+		this.hasTexture = false;
 		this.textures = [];
 		
 		if (this.data) this.build();
@@ -1780,6 +1855,8 @@ a3d.Mesh = a3d.SceneNode.extend({
 	}
 	, addTextureUrl: function(url) {
 		var self = this;
+		this.hasTexture = true;
+		
 		a3d.$TexLib.get(url, function(img) {
 			var tris = self.data.fs;
 			var trisl = tris.length;
@@ -1869,8 +1946,12 @@ a3d.Mesh = a3d.SceneNode.extend({
 		
 		this.zSort();
 		
-		if (this.textures.length) {
-			this._renderTexture(r);
+		if (this.hasTexture) {
+			if (this.textures.length) {
+				this._renderTexture(r);
+			} else {
+				// TODO: show a substitute texture or something
+			}
 		} else {
 			this._renderColor(r);
 		}

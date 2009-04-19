@@ -836,15 +836,17 @@ a3d.Mat3 = a3d.MathClass.extend({
 		//return 'matrix(' + [this._11, this._21, this._12, this._22, this._13, this._23].join(',') + ')';
 	}
 	, applyIeFilter: function(node) {
-		if (!node.filters['DXImageTransform.Microsoft.Matrix']) {
+		var f;
+		if (!(f = node.filters['DXImageTransform.Microsoft.Matrix'])) {
 			node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
-		}
-		var f = node.filters['DXImageTransform.Microsoft.Matrix'];
+			f = node.filters['DXImageTransform.Microsoft.Matrix'];
+		} 
 		if (!f) {
 			throw new Exception('Something failed with IE matrix.');
 		}
 		f.M11 = this._11; f.M12 = this._21;
 		f.M21 = this._12; f.M22 = this._22;
+		f.Dx = this._13; f.Dy = this._23;
 	}
 });
 
@@ -961,10 +963,11 @@ a3d.Mat2 = a3d.MathClass.extend({
 		//return 'matrix(' + [this._11, this._21, this._12, this._22, 0, 0].join(',') + ')';
 	}
 	, applyIeFilter: function(node) {
-		if (!node.filters['DXImageTransform.Microsoft.Matrix']) {
-			node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-		}
-		var f = node.filters['DXImageTransform.Microsoft.Matrix'];
+		var f;
+		if (!(f = node.filters['DXImageTransform.Microsoft.Matrix'])) {
+			node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
+			f = node.filters['DXImageTransform.Microsoft.Matrix'];
+		} 
 		if (!f) {
 			throw new Exception('Something failed with IE matrix.');
 		}
