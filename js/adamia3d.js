@@ -204,6 +204,7 @@ a3d.Viewport = Class.extend({
 		this.camera = new a3d.Camera({viewport: this});
 		this.renderer = new rendererClass({viewport: this, camera: this.camera});
 		this.scene = new a3d.Scene();
+		this.scene.addChild(this.camera);
 		
 		a3d.on(this.node, 'resize', this.resize);
 		this.resize();
@@ -301,8 +302,9 @@ a3d.Viewport = Class.extend({
 			tk[i](dt);
 		}
 		
+		// TODO: This logic is flawed, and the camera will be a frame behind
 		var cam = this.camera;
-		cam.update(dt);
+		//cam.update(dt);
 		this.scene.update(cam.invM, dt);				// update geometry
 		
 		// Skip render frames instead of queueing them up
@@ -469,7 +471,8 @@ a3d.SceneNode = a3d.Node.extend({
 		for (var i = 0; i < chl; ++i) {
 			var ch = chs[i];
 			
-			ch.render(r);
+			var render = ch.render;
+			if (render) ch.render(r);
 		}
 		
 		this._render(r);
@@ -591,9 +594,9 @@ a3d.Camera = a3d.Node.extend({
 		}
 	}
 	//, _update: update
-	, update: function(dt) {
-		this._super(a3d.M4, dt);
-		this.invM.inv3m(this.m);
+	, update: function(pm, dt) {
+		this._super(pm, dt);
+		this.invM.inv3m(this.cm);
 	}
 });
 

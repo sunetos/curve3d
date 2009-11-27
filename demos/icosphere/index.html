@@ -29,6 +29,9 @@
 				
 				var mesh;
 				var autoRot = true;
+				var camNode = new a3d.Node();
+				v.scene.addChild(camNode);
+				camNode.addChild(v.camera);
 				
 				a3d.MeshLoader.loadOBJ('adamia-3d-test-03.obj', function(meshes) {
 					mesh = meshes[0];
@@ -42,6 +45,9 @@
 				
 				v.onTick(function(dt) {
 					if (mesh && autoRot) mesh.rotY(1.5*dt);
+					
+					// Demonstrate camera parenting under a scene node
+					//camNode.moveBy(0, 0.5, 0);
 				});
 				
 				$('#render-options').find('input[name=a3d-projection]').click(function() {
