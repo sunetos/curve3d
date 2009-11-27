@@ -41,9 +41,9 @@ adamia3d = function() {
 }();
 
 // Based on http://www.thespanner.co.uk/2009/01/29/detecting-browsers-javascript-hacks/
-// Had to extend myself for recent Chrome support
+// Had to extend myself to support newer Chromes, and FF3.5 & FF3.6
 //FF35=(/a/[-1]&&Object.getPrototypeOf)?true:false
-a3d.$B = (/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':/^function \(/.test([].sort)?'Op':'Unknown';
+a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':/^function \(/.test([].sort)?'Op':'Unknown';
 
 // Standardized method of supplying options to constructors
 a3d.setup = function(obj, cfg) {
@@ -228,10 +228,11 @@ a3d.Viewport = Class.extend({
 			case 'Op':
 				return a3d.RendererCanvas2d; break;
 			case 'FF35':
+			case 'FF36':
 				//return a3d.RendererSVG; break;
 				//return a3d.RendererCanvas2dBlit; break;
-				//return a3d.RendererCanvas2d; break;
-				return a3d.RendererCss3; break;
+				return a3d.RendererCanvas2d; break;
+				//return a3d.RendererCss3; break;
 			
 			case 'Saf':
 				return a3d.RendererCanvas2d; break;
