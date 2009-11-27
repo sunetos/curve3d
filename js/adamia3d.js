@@ -188,6 +188,7 @@ a3d.Viewport = Class.extend({
 	, lastT: 0
 	, simT: 0	// number of seconds based on interval time
 	, frameCount: 0
+	, paused: true
 
 	// viewportId is the id of a DOM node that is in the body of the document and "ready."
 	// rendererClass lets you choose the rendering pipeline. If you don't supply one,
@@ -242,8 +243,10 @@ a3d.Viewport = Class.extend({
 	}
 	
 	, play: function() {
+		this.paused = false;
 		if (this.interval > 0) {
 			var self = this;
+			this.lastT = (new Date()).getTime();
 			this.intervalId = setInterval(function() {
 				self.tick();
 			}, this.interval);
@@ -252,6 +255,7 @@ a3d.Viewport = Class.extend({
 		}
 	}
 	, pause: function() {
+		this.paused = true;
 		if (this.intervalId > 0) {
 			clearInterval(this.intervalId);
 			this.intervalId = 0;
@@ -273,7 +277,7 @@ a3d.Viewport = Class.extend({
 		if (this.startT) {
 			var thisT = (new Date()).getTime();
 			var dtMs = thisT - this.lastT;
-			this.simT += inter;
+			this.simT += inter;		// Watch for floating point error accumuluation here
 			
 			// Skip frames instead of queueing them up.
 			// Let the next frame calculate the new DT that
@@ -1005,12 +1009,13 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			'<div class="a3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
 			//'<img class="a3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
 			'</div></div></div></div></div>';
+		//this.triFrag.appendChild((tmpDiv.firstChild) ? tmpDiv.firstChild : tmpDiv);
 		this.triFrag.appendChild(tmpDiv.firstChild);
 		
-		switch (a3d.$B) {
+		switch (a3d.$B.substr(0, 2)) {
 			case 'FF':	this.$B = 1; break;
-			case 'Saf':
-			case 'Chr':	this.$B = 2; break;
+			case 'Sa':
+			case 'Ch':	this.$B = 2; break;
 			case 'IE':	this.$B = 3; break;
 			default:	this.$B = null; break;
 		}

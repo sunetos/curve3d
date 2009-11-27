@@ -58,6 +58,16 @@
 					v.resize();
 				});
 				
+				$('#control-panel').find('input[name=a3d-pause]').click(function() {
+					if (v.paused) {
+						v.play();
+						$(this).val('Pause');
+					} else {
+						v.pause();
+						$(this).val('Unpause');
+					}
+				});
+				
 				 $('#viewport').mousemove(function(e){
 				      var pageCoords = "( " + e.pageX + ", " + e.pageY + " )";
 				      var clientCoords = "( " + e.clientX + ", " + e.clientY + " )";
@@ -73,6 +83,9 @@
 		<div id="render-options">
 			<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
 			<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+		</div>
+		<div id="control-panel">
+			<input type="button" name="a3d-pause" value="Pause" />
 		</div>
 		<script type="text/javascript">
 			do3d();
