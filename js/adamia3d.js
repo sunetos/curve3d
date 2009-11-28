@@ -65,11 +65,19 @@ a3d.setupMap = function(obj, map, cfg) {
 // Super-simple event handler
 a3d.on = function(node, type, handler) {
 	if (node.addEventListener) {
-		node.addEventListener('resize', handler, false);
+		node.addEventListener(type, handler, false);
 	} else if (node.attachEvent) {
 		node.attachEvent('on' + type, handler);
 	}
 };
+// Solve scope issues with "this" on event handlers, taken from:
+// http://stackoverflow.com/questions/183214/javascript-callback-scope
+a3d.bind = function(scope, fn) {
+	return function () {
+		fn.apply(scope, arguments);
+	};
+};
+
 
 // Not sure why I felt the need to optimize this to death
 a3d.padLeft = function(str, len, ch) {
@@ -205,6 +213,20 @@ a3d.Viewport = Class.extend({
 		this.renderer = new rendererClass({viewport: this, camera: this.camera});
 		this.scene = new a3d.Scene();
 		this.scene.addChild(this.camera);
+		
+		// Pause the simulation when the body/tab loses focus
+		var playFunc = function() {
+			if (this.startT) this.play();	// Ignore first load
+		};
+		var pauseFunc = this.pause;
+		if (a3d.$B == 'IE') {
+			a3d.on(document, 'focusin', a3d.bind(this, playFunc));
+			a3d.on(document, 'focusout', a3d.bind(this, pauseFunc));
+		} else {
+			a3d.on(window, 'focus', a3d.bind(this, playFunc));
+			a3d.on(window, 'blur', a3d.bind(this, pauseFunc));
+		}
+		
 		
 		a3d.on(this.node, 'resize', this.resize);
 		this.resize();
