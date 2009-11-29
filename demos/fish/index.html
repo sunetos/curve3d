@@ -30,6 +30,7 @@
 	<script type="text/javascript">
 		function do3d() {
 			var v = adamia3d.init('viewport');
+			var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 			
 			var mesh;
 				
@@ -60,15 +61,21 @@
 				v.resize();
 			});
 			
-			$('#control-panel').find('input[name=a3d-pause]').click(function() {
+			pauseBtn.click(function() {
 				if (v.paused) {
 					v.play();
-					$(this).val('Pause');
 				} else {
 					v.pause();
-					$(this).val('Unpause');
 				}
 			});
+			
+			setInterval(function() {
+				if (v.paused) {
+					pauseBtn.val('Unpause');
+				} else {
+					pauseBtn.val('Pause');
+				}
+			}, 50);
 			
 			 $('#viewport').mousemove(function(e){
 			      var pageCoords = "( " + e.pageX + ", " + e.pageY + " )";
