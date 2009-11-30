@@ -1072,6 +1072,20 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
 			
 			var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
+			//var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
+			
+			// Attempt to account for seams
+			var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
+			var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
+			  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
+			  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
+			
+			off1x = dir1x*0.1; off1y = dir1y*0.1;
+			off2x = dir2x*0.1; off2y = dir2y*0.1;
+			off3x = dir3x*0.1; off3y = dir3y*0.1;
+			
+			v1x += off1x; v2x += off2x; v3x += off3x;
+			v1y += off1y; v2y += off2y; v3y += off3y;
 			var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
 			
 			var winding = d13y*d12x - d13x*d12y;
@@ -1235,6 +1249,8 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			var aff2d = this.sm21;
 			aff2d._11 = d12x; aff2d._12 = d12y;
 			aff2d._21 = d13x; aff2d._22 = d13y;
+			
+			//aff2d.scale(1.05);
 			
 			aff2d.scaleXY(stri.invBw, stri.invBh);
 			
