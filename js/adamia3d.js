@@ -189,6 +189,7 @@ a3d.Viewport = Class.extend({
 	, halfW: 0, halfH: 0
 	, scene: null
 	, tickers: []
+	, z: 0
 	
 	, interval: 1000.0/30.0
 	, intervalId: 0
@@ -327,6 +328,7 @@ a3d.Viewport = Class.extend({
 		// TODO: This logic is flawed, and the camera will be a frame behind
 		var cam = this.camera;
 		//cam.update(dt);
+		this.z = 0;
 		this.scene.update(cam.invM, dt);				// update geometry
 		
 		// Skip render frames instead of queueing them up
@@ -1263,6 +1265,8 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				node.style.left = '' + screenX + 'px';
 				node.style.top = '' + screenY + 'px';
 			}
+			
+			node.style.zIndex = this.viewport.z++;
 		}
 	}
 	
@@ -1866,6 +1870,11 @@ a3d.TextureLib = Class.extend({
 			var img = new Image();
 			img.onload = function() {
 				imgs[url] = img;
+				/* Started some poking at tiled textures
+				img.style.backgroundImage = 'url("' + img.src + '")';
+				img.style.backgroundSize = '' + img.width + 'px ' + img.height + 'px';
+				img.src = 'http://www.golivetutor.com/download/spacer.gif';
+				*/
 				if (typeof(callback) == 'function') callback(imgs[url]);
 			};
 			img.src = url;

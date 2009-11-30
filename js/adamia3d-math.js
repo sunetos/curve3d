@@ -832,8 +832,14 @@ a3d.Mat3 = a3d.MathClass.extend({
 		']]';
 	}
 	, toCssString: function() {
-		return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
-		//return 'matrix(' + [this._11, this._21, this._12, this._22, this._13, this._23].join(',') + ')';
+		// NOTE: The easier method here has a nasty bug where small numbers
+		// get scientific notation, which css can't handle.
+		//return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
+		
+		// This method has got to be slow :(
+		return 'matrix(' + this._11.toFixed(12) + ',' + this._12.toFixed(12) + ',' +
+			this._21.toFixed(12) + ',' + this._22.toFixed(12) + ',' +
+			this._13.toFixed(12) + ',' + this._23.toFixed(12) + ')';
 	}
 	, applyIeFilter: function(node) {
 		var f;
@@ -959,8 +965,15 @@ a3d.Mat2 = a3d.MathClass.extend({
 		']]';
 	}
 	, toCssString: function() {
-		return 'matrix(' + [this._11, this._12, this._21, this._22, 0, 0].join(',') + ')';
-		//return 'matrix(' + [this._11, this._21, this._12, this._22, 0, 0].join(',') + ')';
+		//return 'matrix(' + [this._11, this._12, this._21, this._22, 0, 0].join(',') + ')';
+		
+		// NOTE: The easier method here has a nasty bug where small numbers
+		// get scientific notation, which css can't handle.
+		//return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
+		
+		// This method has got to be slow :(
+		return 'matrix(' + this._11.toFixed(12) + ',' + this._12.toFixed(12) + ',' +
+			this._21.toFixed(12) + ',' + this._22.toFixed(12) + ',0,0)';
 	}
 	, applyIeFilter: function(node) {
 		var f;
