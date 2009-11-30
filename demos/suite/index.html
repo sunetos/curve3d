@@ -97,9 +97,9 @@
 				$('#a3d-renderer').change(function() {
 					var renderName = $('#a3d-renderer :selected').val().substr(0, 3);
 					
+					v.pause();
 					$('#viewport').empty();
 					
-					v.pause();
 					if (renderName == 'Can') {
 						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
 					} else {
