@@ -99,11 +99,13 @@
 					
 					$('#viewport').empty();
 					
+					v.pause();
 					if (renderName == 'Can') {
 						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
 					} else {
 						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
 					}
+					v.play();
 				});
 				
 				$('#a3d-mesh').change(function() {
