@@ -180,6 +180,21 @@ a3d.get = function(url, success, fail) {
 
 }
 
+a3d.avoidSelect = function(node) {
+	var B = a3d.$B.substr(0, 2);
+	if (B == 'IE' || B == 'Op') {
+		node.onselectstart = function() { return false; };	// ie
+		node.unselectable = 'on';				// non-ie
+	} else if (B == 'Sa') {
+		node.style.KhtmlUserSelect = 'none';
+	} else if (B == 'FF') {
+		node.style.MozUserSelect = 'none';
+	} else if (B == 'Ch') {
+		node.style.WebkitUserSelect = 'none';
+	}
+	node.style.UserSelect = 'none';
+}
+
 a3d.Viewport = Class.extend({
 	  id: null
 	, node: null
@@ -1125,6 +1140,8 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				imgNode.style.left = '0';
 				imgNode.style.top = '0';
 				rotNode.appendChild(imgNode);
+				
+				a3d.avoidSelect(node);
 				
 				// We only need to build the inverse texture projection once
 				
