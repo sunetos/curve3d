@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+
+	<title>Adamia 3D Demo Suite</title>
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
+	
+	<style type="text/css">
+		#viewport {
+			width: 400px;
+			height: 300px;
+			position: absolute;
+			top:0;
+			left:0;
+		}
+		#content {
+			width: 400px;
+			height: 300px;
+		}
+		
+		#control-panel {
+			width: 120px;
+			height: 234px;
+			border: 1px solid #999999;
+			
+			font-family: Arial, Helvetica, sans-serif;
+			
+			position: absolute;
+			left: 410px;
+			top: 10px;
+		}
+		#control-panel h3 {
+			width: 120px;
+			height: 20px;
+			background-color: #CCCCCC;
+			text-align: center;
+			color: #555555;
+			font-size: 77%;
+		}
+		#control-panel h4 {
+			width: 120px;
+			height: 20px;
+			text-align: center;
+			color: #555555;
+			font-size: 77%;
+		}
+		#control-panel-options {
+			width: 120px;
+			padding: 6px;
+		}
+		#pause-panel {
+			width: 110px;
+			height: 30px;
+			margin-top: 8px;
+		}
+		#a3d-pause {
+			width: 110px;
+			height: 24px;
+		}
+		#control-panel select {
+			width: 110px;
+		}
+		#a3d-quality {
+			height: 40px;
+		}
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<!--<script src="/adamia/js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/adamia/js/adamia3d.js" type="text/javascript" charset="utf-8"></script>-->
+	<script type="text/javascript">
+			function do3d() {
+				var v = adamia3d.init('viewport');
+				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
+				
+				var mesh = null;
+				var meshName = '';
+				var autoRot = true;
+				var camNode = new a3d.Node();
+				v.scene.addChild(camNode);
+				camNode.addChild(v.camera);
+				
+				$('#a3d-quality').change(function() {
+					var quality = $('#a3d-quality :selected').val();
+					
+					if (quality == 'Solid') {
+						v.camera.detail = a3d.Render.Detail.COLOR;
+					} else {
+						v.camera.detail = a3d.Render.Detail.TXTUR;
+					}
+				});
+				
+				$('#a3d-mesh').change(function() {
+					var selMesh = $('#a3d-mesh :selected').val();
+					if (meshName == selMesh) return;
+					
+					if (mesh) {
+						v.scene.removeChild(mesh);
+						mesh.remove(v.renderer);
+					}
+					
+					meshName = selMesh;
+					if (meshName == 'Fish') {
+						a3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
+							mesh = meshes[0];
+							mesh.addTextureUrl('../fish/piranhaSkin.jpg');
+							mesh.scaleBy(150, 150, 150);
+							mesh.moveTo(0, 0, 0);
+							v.scene.addChild(mesh);
+							
+							if (v.paused) v.play();
+						});
+					} else if (meshName == 'Icosphere') {
+						a3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
+							mesh = meshes[0];
+							mesh.addTextureUrl('../icosphere/adamia-test-texture.png');
+							mesh.scaleBy(90, 90, 90);
+							mesh.moveTo(0, 0, 0);
+							v.scene.addChild(mesh);
+							
+							if (v.paused) v.play();
+						});
+					}
+				});
+				
+				$('#a3d-quality').val('Textured');
+				$('#a3d-mesh').val('Icosphere');
+				$('#a3d-mesh').change();
+				
+				v.onTick(function(dt) {
+					if (mesh && autoRot) mesh.rotY(1.5*dt);
+					
+					// Demonstrate camera parenting under a scene node
+					//camNode.moveBy(0, 0.5, 0);
+				});
+				
+				$('#render-options').find('input[name=a3d-projection]').click(function() {
+					var proj = $(this).val();
+					
+					v.camera.projection = (proj == 'persp') ? a3d.Render.Projection.PERSP : a3d.Render.Projection.ORTHO;
+					v.resize();
+				});
+				
+				pauseBtn.click(function() {
+					if (v.paused) {
+						v.play();
+					} else {
+						v.pause();
+					}
+				});
+				
+				setInterval(function() {
+					if (v.paused) {
+						pauseBtn.val('Unpause');
+					} else {
+						pauseBtn.val('Pause');
+					}
+				}, 50);
+				
+				// added by JNL 3/4/09
+				var mouseX = 0;
+				var mouseY = 0;
+				var rotAmt = 0.02;
+				$('#viewport').mousedown(function() {
+					autoRot = false;
+				}).mouseup(function() {
+					autoRot = true;
+				}).mousemove(function(e) {
+					if (mouseX == 0) mouseX = e.clientX;
+					if (mouseY == 0) mouseY = e.clientY;
+					if (!autoRot) {
+						if (mesh) mesh.rotY(-rotAmt * (e.clientX - mouseX));
+						if (mesh) mesh.rotZ(-rotAmt * (e.clientY - mouseY));
+						mouseX = e.clientX;
+						mouseY = e.clientY;
+					}
+				})
+			}
+			
+			//$(document).ready(do3d);
+	</script>
+</head>
+<body>
+	<div id="viewport"></div>
+	
+	<div id="content">
+		<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+		<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+	</div>
+	
+	<div id="control-panel">
+		<h3>adamia3d options</h3>
+		
+		<div id="control-panel-options">
+			<div id="render-options" style="display: none;">
+				<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
+				<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+			</div>
+			
+			<h4>Model:</h4>
+			<select id="a3d-mesh" name="a3d-mesh" size="3">
+				<option>Icosphere</option>
+				<option>Fish</option>
+			</select>
+			
+			<h4>Quality:</h4>
+			<select id="a3d-quality" name="a3d-quality" size="2">
+				<option>Textured</option>
+				<option>Solid</option>
+			</select>
+			
+			<div id="pause-panel"><input type="button" id="a3d-pause" name="a3d-pause" value="Pause" /></div>
+			
+		</div>
+	</div>
+	<script type="text/javascript">
+			do3d();
+	</script>
+
+</body>
+</html>

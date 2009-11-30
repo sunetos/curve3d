@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+	
+	<title>Adamia 3D Fish Demo</title>
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset-fonts/reset-fonts.css"> 
+	<style type="text/css">
+		body {
+			margin: 0;
+			padding: 0;
+		}
+		#viewport {
+			background-color: #000000;
+			width: 400px;
+			height: 300px;
+			position: relative;
+		}
+		#viewport div, #viewport img {
+			border: 0;
+			padding: 0;
+			margin: 0;
+		}
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		function do3d() {
+			var v = adamia3d.init('viewport');
+			
+			var mesh;
+
+		}
+	</script>
+</head>
+<body>
+	<div id="viewport"></div>
+	<div id="render-options">
+		<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
+		<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+	</div>
+	<div id="control-panel">
+		<input type="button" name="a3d-pause" value="Pause" />
+	</div>
+	<script type="text/javascript">
+		do3d();
+	</script>
+	<span>Move the mouse over the div.</span>
+    <span> </span>
+	
+	<img src="http://www.golivetutor.com/download/spacer.gif" width="64" height="64" style="border: 1px solid black; background-image:url(http://skins.gmodules.com/ig/images/logos/approved/white.png); background-size: 32px; background-repeat: repeat;"/>
+	
+	
+
+</body>
+</html>

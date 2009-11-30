@@ -374,7 +374,13 @@ a3d.Entity = Class.extend({
 		}
 	}
 	, removeChild: function(child) {
-		this.children.remove(child);
+		var ch = this.children; var chl = ch.length;
+		for (var i = 0; i < chl; ++i) {
+			if (ch[i] === child) {
+				ch.splice(i, 1);
+				break;
+			}
+		}
 	}
 	
 	, appendTo: function(parent) {
@@ -494,6 +500,7 @@ a3d.Node = a3d.Entity.extend({
 		
 		this.dirty = true;
 	}
+	, remove: function() {;}
 });
 
 a3d.SceneNode = a3d.Node.extend({
@@ -565,6 +572,7 @@ a3d.Render = {
 a3d.Camera = a3d.Node.extend({
 	  viewport: null
 	, projection: 0
+	, detail: 4
 	, aspRatio: 1.0
 	, fov: 90.0
 	, nearZ: 0.01
@@ -678,6 +686,9 @@ a3d.RendererBase = Class.extend({
 		this._render(scene);
 		this._flip();
 	}
+	
+	, remove: function(stris) {;}
+	
 	, _render: function(scene) {
 		scene.render(this);
 	}
@@ -1076,6 +1087,17 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 	, drawLines: function(pm, col) {
 	}
 	
+	, remove: function(stris) {
+		var trisl = stris.length;
+		for (var i = 0; i < trisl; ++i) {
+			var stri = stris[i];
+			var node = stri.node;
+			if (node && node.style.display != 'none') {
+				node.style.display = 'none';
+			}
+		}
+	}
+	
 	, drawTrianglesTexture: function(stris) {
 		var trisl = stris.length;
 		for (var i = 0; i < trisl; ++i) {
@@ -1314,6 +1336,20 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
 			
 			var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
+			//var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
+			
+			// Attempt to account for seams
+			var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
+			var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
+			  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
+			  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
+			
+			off1x = dir1x*0.1; off1y = dir1y*0.1;
+			off2x = dir2x*0.1; off2y = dir2y*0.1;
+			off3x = dir3x*0.1; off3y = dir3y*0.1;
+			
+			v1x += off1x; v2x += off2x; v3x += off3x;
+			v1y += off1y; v2y += off2y; v3y += off3y;
 			var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
 			
 			var winding = d13y*d12x - d13x*d12y;
@@ -2033,7 +2069,7 @@ a3d.Mesh = a3d.SceneNode.extend({
 		
 		this.zSort();
 		
-		if (this.hasTexture) {
+		if (this.hasTexture && r.camera.detail == a3d.Render.Detail.TXTUR) {
 			if (this.textures.length) {
 				this._renderTexture(r);
 			} else {
@@ -2042,6 +2078,11 @@ a3d.Mesh = a3d.SceneNode.extend({
 		} else {
 			this._renderColor(r);
 		}
+	}
+	
+	, remove: function(r) {
+		// Remove this object from the renderer's display list
+		r.remove(this.stris);
 	}
 	
 	, debugUVs: function() {
