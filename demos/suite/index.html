@@ -23,7 +23,7 @@
 		
 		#control-panel {
 			width: 120px;
-			height: 234px;
+			height: 290px;
 			border: 1px solid #999999;
 			
 			font-family: Arial, Helvetica, sans-serif;
@@ -63,7 +63,7 @@
 		#control-panel select {
 			width: 110px;
 		}
-		#a3d-quality {
+		#a3d-quality, #a3d-renderer {
 			height: 40px;
 		}
 	</style>
@@ -74,7 +74,8 @@
 	<script src="/adamia/js/adamia3d.js" type="text/javascript" charset="utf-8"></script>-->
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport');
+				alert(a3d.RendererCanvas2d);
+				var v = adamia3d.init('viewport', a3d.RendererCanvas2d);
 				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 				
 				var mesh = null;
@@ -91,6 +92,18 @@
 						v.camera.detail = a3d.Render.Detail.COLOR;
 					} else {
 						v.camera.detail = a3d.Render.Detail.TXTUR;
+					}
+				});
+				
+				$('#a3d-renderer').change(function() {
+					var renderName = $('#a3d-renderer :selected').val().substr(0, 3);
+					
+					$('#viewport').empty();
+					
+					if (renderName == 'Can') {
+						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
+					} else {
+						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
 					}
 				});
 				
@@ -127,6 +140,7 @@
 					}
 				});
 				
+				$('#a3d-renderer').val('Canvas 2D');
 				$('#a3d-quality').val('Textured');
 				$('#a3d-mesh').val('Icosphere');
 				$('#a3d-mesh').change();
@@ -200,6 +214,12 @@
 				<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
 				<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
 			</div>
+			
+			<h4>Renderer:</h4>
+			<select id="a3d-renderer" name="a3d-renderer" size="2">
+				<option>Canvas 2D</option>
+				<option>CSS3/IE</option>
+			</select>
 			
 			<h4>Model:</h4>
 			<select id="a3d-mesh" name="a3d-mesh" size="3">
