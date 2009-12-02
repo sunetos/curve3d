@@ -138,6 +138,16 @@
 							
 							if (v.paused) v.play();
 						});
+					} else if (meshName == 'Robot Dragon') {
+						a3d.MeshLoader.loadOBJ('../robot-dragon/robot-dragon.obj', function(meshes) {
+							mesh = meshes[0];
+							mesh.addTextureUrl('../robot-dragon/robot-dragon-texture.png');
+							mesh.scaleBy(70, 70, 70);
+							mesh.moveTo(0, 0, 0);
+							v.scene.addChild(mesh);
+							
+							if (v.paused) v.play();
+						});
 					}
 				});
 				
@@ -226,6 +236,7 @@
 			<select id="a3d-mesh" name="a3d-mesh" size="3">
 				<option>Icosphere</option>
 				<option>Fish</option>
+				<option>Robot Dragon</option>
 			</select>
 			
 			<h4>Quality:</h4>
