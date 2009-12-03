@@ -34,10 +34,10 @@
 				v.scene.addChild(camNode);
 				camNode.addChild(v.camera);
 				
-				a3d.MeshLoader.loadOBJ('robot-dragon.obj', function(meshes) {
+				a3d.MeshLoader.loadOBJ('robot-dragon-fixed.obj', function(meshes) {
 					mesh = meshes[0];
 					mesh.addTextureUrl('robot-dragon-texture.png');
-					mesh.scaleBy(90, 90, 90);
+					mesh.scaleBy(40, 40, 40);
 					mesh.moveTo(0, 0, 0);
 					v.scene.addChild(mesh);
 					
