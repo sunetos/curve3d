@@ -36,7 +36,7 @@
 				
 			a3d.MeshLoader.loadOBJ('piranha.obj', function(meshes) {
 				mesh = meshes[0];
-				mesh.addTextureUrl('piranhaSkin.jpg');
+				mesh.shader.addTextureUrl('piranhaSkin.jpg');
 				//mesh.moveBy(0, 0, 5);
 				//mesh.scaleBy(250, 250, 250);
 				mesh.scaleBy(150, 150, 150);

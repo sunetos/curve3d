@@ -15,9 +15,9 @@ adamia3d = function() {
 
 	var viewports = {};
 
-	function init(viewportId) {
+	function init(viewportId, rendererClass) {
 		//a3d.trace(BrowserDetect.browser);
-		var v = viewports[viewportId] = new a3d.Viewport(viewportId);
+		var v = viewports[viewportId] = new a3d.Viewport(viewportId, rendererClass);
 		
 		//v.play();
 		
@@ -204,7 +204,6 @@ a3d.Viewport = Class.extend({
 	, halfW: 0, halfH: 0
 	, scene: null
 	, tickers: []
-	, z: 0
 	
 	, interval: 1000.0/30.0
 	, intervalId: 0
@@ -242,7 +241,6 @@ a3d.Viewport = Class.extend({
 			a3d.on(window, 'focus', a3d.bind(this, playFunc));
 			a3d.on(window, 'blur', a3d.bind(this, pauseFunc));
 		}
-		
 		
 		a3d.on(this.node, 'resize', this.resize);
 		this.resize();
@@ -343,7 +341,6 @@ a3d.Viewport = Class.extend({
 		// TODO: This logic is flawed, and the camera will be a frame behind
 		var cam = this.camera;
 		//cam.update(dt);
-		this.z = 0;
 		this.scene.update(cam.invM, dt);				// update geometry
 		
 		// Skip render frames instead of queueing them up
@@ -360,7 +357,8 @@ a3d.Entity = Class.extend({
 	, parent: null
 	, children: []
 
-	, init: function() {
+	, init: function(cfg) {
+		a3d.setup(this, cfg);
 		this.children = [];
 	}
 	
@@ -409,8 +407,8 @@ a3d.Node = a3d.Entity.extend({
 	, scale: null	// scale vector
 	, dirty: false
 	
-	, init: function() {
-		this._super();
+	, init: function(cfg) {
+		this._super(cfg);
 		
 		this.m = new a3d.Mat4();
 		this.cm = new a3d.Mat4();
@@ -504,13 +502,15 @@ a3d.Node = a3d.Entity.extend({
 });
 
 a3d.SceneNode = a3d.Node.extend({
-	  domNode: null
+	  shader: null
 	
-	/*
-	, init: function() {
-		this._super();
+	, init: function(cfg) {
+		this._super(cfg);
+		
+		if (!this.shader) {
+			this.shader = a3d.$DefaultShader;
+		}
 	}
-	*/
 	
 	, render: function(r) {
 		var chs = this.children; var chl = chs.length;
@@ -633,11 +633,14 @@ a3d.Camera = a3d.Node.extend({
 			var v1 = wtri.v1, v2 = wtri.v2, v3 = wtri.v3;
 			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
 			
-			// The screen-transformed verts
+			// The world-and-camera-transformed verts
 			sv1.trans(pm, v1); sv2.trans(pm, v2); sv3.trans(pm, v3);
+			wtri.camCenter.set(sv1).add(sv2).add(sv3);	// Don't bother dividing by 3
+			
+			// The screen-transformed verts
 			sv1.trans(screenM, sv1); sv2.trans(screenM, sv2); sv3.trans(screenM, sv3);
 			
-			stri.center.set(sv1).add(sv2).add(sv3).div(3.0);
+			stri.center.set(sv1).add(sv2).add(sv3);		// Don't bother dividing by 3
 		}
 	}
 	//, _update: update
@@ -652,6 +655,8 @@ a3d.RendererBase = Class.extend({
 	  viewport: null
 	, camera: null
 	, detail: 0
+	, z: 0			// Track current z-index
+	, stris: []		// All polys to render this frame
 	, vw: 0
 	, vh: 0
 	
@@ -663,6 +668,8 @@ a3d.RendererBase = Class.extend({
 	
 	, init: function(cfg) {
 		a3d.setup(this, cfg);
+		
+		this.stris = [];
 		
 		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
 		this.svv1 = new a3d.Vec2();
@@ -690,12 +697,31 @@ a3d.RendererBase = Class.extend({
 	, remove: function(stris) {;}
 	
 	, _render: function(scene) {
+		this.z = 0;
+		this.stris.length = 0;
+		
 		scene.render(this);
+		this.zSort();
+		this.drawTriangles(this.stris);
 	}
 	
 	// These functions really should be pure virtual
 	, _clear: function() {a3d.trace('_clear');}
 	, _flip: function() {a3d.trace(' _flip');}
+	
+	, triCmpZaxis: function(tri1, tri2) {
+		return (tri2.center.z - tri1.center.z);	// z-axis sort
+	}
+	
+	, triCmpCamDist: function(tri1, tri2) {
+		// This works because camCenter is in camera space
+		var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
+		return tri2z - tri1z;
+	}
+	
+	, zSort: function() {
+		this.stris.sort(this.triCmpZaxis);
+	}
 });
 
 a3d.newCanvas = function(w, h) {
@@ -787,7 +813,7 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 		
 	}
 	
-	, drawTrianglesTexture: function(stris) {
+	, drawTriangles: function(stris) {
 		var trisl = stris.length;
 		for (var i = 0; i < trisl; ++i) {
 			var stri = stris[i];
@@ -805,180 +831,168 @@ a3d.RendererCanvas2d = a3d.RendererCanvas2dBase.extend({
 			var winding = d13y*d12x - d13x*d12y;
 			if (winding < 0) continue;
 			
-			var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
-			
-			
-			/*
-			//var winding = d13y*d12x - d13x*d12y;
-			if (winding > 0) {	// Swap v2 with v3
-				var tmpvx = v1x, tmpvy = v1y;
-				v1x = v2x; v1y = v2y; v2x = tmpvx; v2y = tmpvy;
-				d12x = -d12x; d12y = -d12y;
-				d13x = v3x - v1x; d13y = v3y - v1y;
-				winding = d13y*d12x - d13x*d12y;
-			}
-			*/
-			
-			rctx.save();
-			
-			// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
-			// from the texture image to the triangle, not counting translation yet
 			var img = tri.img;
-			var w = img.width, h = img.height;
-			
-			// Maybe move the matrix multiply math inline for an optimization?
-			var aff2d = this.sm21;
-			aff2d._11 = d12x; aff2d._12 = d12y;
-			aff2d._21 = d13x; aff2d._22 = d13y;
-			aff2d.mulm(iuvm, aff2d);
-			var aff2d11 = aff2d._11, aff2d12 = aff2d._21, aff2d21 = aff2d._12, aff2d22 = aff2d._22;
-			
-			// Find texture screen position
-			var imgX = tri.originX, imgY = tri.originY;
-			var scrImgX = (imgX*aff2d11 + imgY*aff2d12) | 0
-			  , scrImgY = (imgX*aff2d21 + imgY*aff2d22) | 0;
-			// Find delta vector from texture to triangle
-			var scrDX = v1x - scrImgX, scrDY = v1y - scrImgY;
-			
-			// Find source and destination bounding boxes; requires sorting vertices
-			var x1 = w*uv1.x, x2 = w*uv2.x, x3 = w*uv3.x
-			  , y1 = h - h*uv1.y, y2 = h - h*uv2.y, y3 = h - h*uv3.y;
-			
-			var bx1, bx2, bx3, by1, by2, by3, bx1y, bx2y, bx3y;
-			var xTmp, yTmp;
-			
-			// Sort the vertices
-			if (x1 < x2) {
-				if (x1 < x3) {
-					if (x2 < x3) {
-						bx1 = x1; bx2 = x2; bx3 = x3;
-						bx1y = y1; bx2y = y2; bx3y = y3;
-					} else{
-						bx1 = x1; bx2 = x3; bx3 = x2;
-						bx1y = y1; bx2y = y3; bx3y = y2;
-					}
-				} else {
-					bx1 = x3; bx2 = x1; bx3 = x2;
-					bx1y = y3; bx2y = y1; bx3y = y2;
+			if (img) {
+				// drawTrianglesTexture()
+				
+				var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
+				
+				
+				/*
+				//var winding = d13y*d12x - d13x*d12y;
+				if (winding > 0) {	// Swap v2 with v3
+					var tmpvx = v1x, tmpvy = v1y;
+					v1x = v2x; v1y = v2y; v2x = tmpvx; v2y = tmpvy;
+					d12x = -d12x; d12y = -d12y;
+					d13x = v3x - v1x; d13y = v3y - v1y;
+					winding = d13y*d12x - d13x*d12y;
 				}
-			} else {
-				if (x2 < x3) {
+				*/
+				
+				// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
+				// from the texture image to the triangle, not counting translation yet
+				var w = img.width, h = img.height;
+				
+				// Maybe move the matrix multiply math inline for an optimization?
+				var aff2d = this.sm21;
+				aff2d._11 = d12x; aff2d._12 = d12y;
+				aff2d._21 = d13x; aff2d._22 = d13y;
+				aff2d.mulm(iuvm, aff2d);
+				var aff2d11 = aff2d._11, aff2d12 = aff2d._21, aff2d21 = aff2d._12, aff2d22 = aff2d._22;
+				
+				// Find texture screen position
+				var imgX = tri.originX, imgY = tri.originY;
+				var scrImgX = (imgX*aff2d11 + imgY*aff2d12) | 0
+				  , scrImgY = (imgX*aff2d21 + imgY*aff2d22) | 0;
+				// Find delta vector from texture to triangle
+				var scrDX = v1x - scrImgX, scrDY = v1y - scrImgY;
+				
+				// Find source and destination bounding boxes; requires sorting vertices
+				var x1 = w*uv1.x, x2 = w*uv2.x, x3 = w*uv3.x
+				  , y1 = h - h*uv1.y, y2 = h - h*uv2.y, y3 = h - h*uv3.y;
+				
+				var bx1, bx2, bx3, by1, by2, by3, bx1y, bx2y, bx3y;
+				var xTmp, yTmp;
+				
+				// Sort the vertices
+				if (x1 < x2) {
 					if (x1 < x3) {
-						bx1 = x2; bx2 = x1; bx3 = x3;
-						bx1y = y2; bx2y = y1; bx3y = y3;
-					} else{
-						bx1 = x2; bx2 = x3; bx3 = x1;
-						bx1y = y2; bx2y = y3; bx3y = y1;
+						if (x2 < x3) {
+							bx1 = x1; bx2 = x2; bx3 = x3;
+							bx1y = y1; bx2y = y2; bx3y = y3;
+						} else{
+							bx1 = x1; bx2 = x3; bx3 = x2;
+							bx1y = y1; bx2y = y3; bx3y = y2;
+						}
+					} else {
+						bx1 = x3; bx2 = x1; bx3 = x2;
+						bx1y = y3; bx2y = y1; bx3y = y2;
 					}
 				} else {
-					bx1 = x3; bx2 = x2; bx3 = x1;
-					bx1y = y3; bx2y = y2; bx3y = y1;
-				}
-			}
-	
-			if (y1 < y2) {
-				if (y1 < y3) {
-					if (y2 < y3) {
-						by1 = y1; by2 = y2; by3 = y3;
-					} else{
-						by1 = y1; by2 = y3; by3 = y2;
+					if (x2 < x3) {
+						if (x1 < x3) {
+							bx1 = x2; bx2 = x1; bx3 = x3;
+							bx1y = y2; bx2y = y1; bx3y = y3;
+						} else{
+							bx1 = x2; bx2 = x3; bx3 = x1;
+							bx1y = y2; bx2y = y3; bx3y = y1;
+						}
+					} else {
+						bx1 = x3; bx2 = x2; bx3 = x1;
+						bx1y = y3; bx2y = y2; bx3y = y1;
 					}
-				} else {
-					by1 = y3; by2 = y1; by3 = y2;
 				}
-			} else {
-				if (y2 < y3) {
+		
+				if (y1 < y2) {
 					if (y1 < y3) {
-						by1 = y2; by2 = y1; by3 = y3;
-					} else{
-						by1 = y2; by2 = y3; by3 = y1;
+						if (y2 < y3) {
+							by1 = y1; by2 = y2; by3 = y3;
+						} else{
+							by1 = y1; by2 = y3; by3 = y2;
+						}
+					} else {
+						by1 = y3; by2 = y1; by3 = y2;
 					}
 				} else {
-					by1 = y3; by2 = y2; by3 = y1;
-				}
-			}
-			
-			var bw = bx3 - bx1, bh = by3 - by1;
-			
-			var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
-			var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
-			  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
-			  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
-			  
-			// Account for seams between triangles (rendering artifacts)
-			var grow = 2, halfGrow = grow >> 1;
-			var dstbx = bx1, dstby = by1, dstbw = bw, dstbh = bh;
-			
-			if (grow) {
-				if (dstbx > halfGrow) {
-					dstbx -= halfGrow;
-					dstbw += grow;
-				}
-				if (dstby > halfGrow) {
-					dstby -= halfGrow;
-					dstbh += grow;
+					if (y2 < y3) {
+						if (y1 < y3) {
+							by1 = y2; by2 = y1; by3 = y3;
+						} else{
+							by1 = y2; by2 = y3; by3 = y1;
+						}
+					} else {
+						by1 = y3; by2 = y2; by3 = y1;
+					}
 				}
 				
-				if ((dstbx + dstbw) < w) dstbw += grow;
-				else dstbw = w - dstbx;
-				if ((dstby + dstbh) < h) dstbh += grow;
-				else dstbh = h - dstby;
+				var bw = bx3 - bx1, bh = by3 - by1;
+				
+				var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
+				var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
+				  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
+				  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
+				  
+				// Account for seams between triangles (rendering artifacts)
+				var grow = 2, halfGrow = grow >> 1;
+				var dstbx = bx1, dstby = by1, dstbw = bw, dstbh = bh;
+				
+				if (grow) {
+					if (dstbx > halfGrow) {
+						dstbx -= halfGrow;
+						dstbw += grow;
+					}
+					if (dstby > halfGrow) {
+						dstby -= halfGrow;
+						dstbh += grow;
+					}
+					
+					if ((dstbx + dstbw) < w) dstbw += grow;
+					else dstbw = w - dstbx;
+					if ((dstby + dstbh) < h) dstbh += grow;
+					else dstbh = h - dstby;
+				}
+				
+				// More attempts to account for the seams
+				off1x = dir1x*0.15; off1y = dir1y*0.15;
+				off2x = dir2x*0.15; off2y = dir2y*0.15;
+				off3x = dir3x*0.15; off3y = dir3y*0.15;
+				
+				rctx.save();
+				
+				// Clip to show just the triangle.
+				// TODO: This nearly doubles the rendering time. Optimize it by maybe rendering to a clipping buffer
+				// and clip out after rendering all triangles but before flipping the buffer?
+				// TODO: In firefox, this causes rendering artifacts in the form of gaps between triangles. Fix it.
+				rctx.beginPath();
+				rctx.moveTo(v1x + off1x, v1y + off1y);
+				rctx.lineTo(v2x + off2x, v2y + off2y);
+				rctx.lineTo(v3x + off3x, v3y + off3y);
+				rctx.closePath();
+				rctx.clip();
+				
+				if (dstbx < 0) dstbx = 0;
+				if (dstby < 0) dstby = 0;
+				if (bx1 < 0) bx1 = 0;
+				if (by1 < 0) by1 = 0;
+				
+				// Bake the affine transform, including translation
+				rctx.transform(aff2d11, aff2d21, aff2d12, aff2d22, scrDX, scrDY);
+				//console.log([bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh]);
+				rctx.drawImage(img, bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh);
+				
+				rctx.restore();
+			} else {
+				// drawTrianglesColor()
+				
+				rctx.beginPath();
+				//rctx.fillStyle = a3d.Blue.str;
+				rctx.fillStyle = tri.v1.col.str;
+				rctx.moveTo(v1x, v1y);
+				rctx.lineTo(v2x, v2y);
+				rctx.lineTo(v3x, v3y);
+				rctx.closePath();
+				rctx.fill();
 			}
-			
-			// More attempts to account for the seams
-			off1x = dir1x*0.15; off1y = dir1y*0.15;
-			off2x = dir2x*0.15; off2y = dir2y*0.15;
-			off3x = dir3x*0.15; off3y = dir3y*0.15;
-			
-			
-			// Clip to show just the triangle.
-			// TODO: This nearly doubles the rendering time. Optimize it by maybe rendering to a clipping buffer
-			// and clip out after rendering all triangles but before flipping the buffer?
-			// TODO: In firefox, this causes rendering artifacts in the form of gaps between triangles. Fix it.
-			rctx.beginPath();
-			rctx.moveTo(v1x + off1x, v1y + off1y);
-			rctx.lineTo(v2x + off2x, v2y + off2y);
-			rctx.lineTo(v3x + off3x, v3y + off3y);
-			rctx.closePath();
-			rctx.clip();
-			
-			if (dstbx < 0) dstbx = 0;
-			if (dstby < 0) dstby = 0;
-			if (bx1 < 0) bx1 = 0;
-			if (by1 < 0) by1 = 0;
-			
-			// Bake the affine transform, including translation
-			rctx.transform(aff2d11, aff2d21, aff2d12, aff2d22, scrDX, scrDY);
-			//console.log([bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh]);
-			rctx.drawImage(img, bx1, by1, bw, bh, dstbx, dstby, dstbw, dstbh);
-			
-			rctx.restore();
-		}
-	}
-	
-	, drawTrianglesColor: function(stris) {
-		var trisl = stris.length;
-		for (var i = 0; i < trisl; ++i) {
-			var stri = stris[i];
-			var tri = stri.tri;
-			
-			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
-			var rctx = this.rctx;
-			
-			var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
-			var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
-			
-			var winding = d13y*d12x - d13x*d12y;
-			if (winding < 0) continue;
-			
-			rctx.beginPath();
-			//rctx.fillStyle = a3d.Blue.str;
-			rctx.fillStyle = tri.v1.col.str;
-			rctx.moveTo(v1x, v1y);
-			rctx.lineTo(v2x, v2y);
-			rctx.lineTo(v3x, v3y);
-			rctx.closePath();
-			rctx.fill();
 		}
 	}
 });
@@ -1098,7 +1112,11 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 		}
 	}
 	
-	, drawTrianglesTexture: function(stris) {
+	, drawTriangles: function(stris) {
+		var v = this.viewport;
+		var abs = Math.abs;
+		var texturing = (this.camera.detail == a3d.Render.Detail.TXTUR);
+		
 		var trisl = stris.length;
 		for (var i = 0; i < trisl; ++i) {
 			var stri = stris[i];
@@ -1133,377 +1151,345 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 				continue;
 			}
 			
-			var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
-			
-			// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
-			// from the texture image to the triangle, not counting translation yet
-			var img = tri.img;
-			var w = img.width, h = img.height;
-			
-			// Ensure existence of the proxy DOM object
-			var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
-			if (!node || !imgNode || imgNode.tagName != 'IMG') {
-				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
-				if (imgNode) imgNode.parentNode.removeChild(imgNode);
+			var shader = tri.shader;
+			if (texturing && shader.type == 1 && shader.textures.length) {		// a3d.ShaderType.TXTUR
+				// drawTrianglesTexture()
 				
-				var triFrag = this.triFrag.cloneNode(true);
-				stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
+				var imgs = shader.textures;
+				var img = imgs[0];
+				var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
 				
-				stri.unrotNode = unrotNode = node.firstChild;
-				stri.offsetNode = offsetNode = unrotNode.firstChild;
-				stri.cropNode = cropNode = offsetNode.firstChild;
-				stri.rotNode = rotNode = cropNode.firstChild;
+				// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
+				// from the texture image to the triangle, not counting translation yet
+				var w = img.width, h = img.height;
 				
-				stri.imgNode = imgNode = img.cloneNode(false);
-				imgNode.className = 'a3d-tri-img';
-				imgNode.style.display = 'block';
-				imgNode.style.position = 'absolute';
-				imgNode.style.left = '0';
-				imgNode.style.top = '0';
-				rotNode.appendChild(imgNode);
-				
-				a3d.avoidSelect(node);
-				
-				// We only need to build the inverse texture projection once
-				
-				// Find texture screen position
-				var imgX = tri.originX, imgY = tri.originY;
-				
-				var bw = w, bh = h;
-				
-				var m = tri.iuuvm;
-				var pp = this.svv1;
-				pp.x = imgX; pp.y = imgY;
-				pp.trans(m, pp);
-				
-				// Small optimization for square textures
-				var hypot, sinTheta, cosTheta, theta, rotRad;
-				if (bw == bh) {
-					hypot = 1.414213562373*bw;
-					sinTheta = cosTheta = 0.707106781186;
-					theta = rotRad = 0.785398163397;
+				// Ensure existence of the proxy DOM object
+				var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
+				if (!node || !imgNode || imgNode.tagName != 'IMG') {
+					// Cleanup other render types
+					if (node) node.parentNode.removeChild(node);
+					if (imgNode) imgNode.parentNode.removeChild(imgNode);
+					
+					var triFrag = this.triFrag.cloneNode(true);
+					stri.node = node = v.node.appendChild(triFrag.firstChild);
+					
+					stri.unrotNode = unrotNode = node.firstChild;
+					stri.offsetNode = offsetNode = unrotNode.firstChild;
+					stri.cropNode = cropNode = offsetNode.firstChild;
+					stri.rotNode = rotNode = cropNode.firstChild;
+					
+					stri.imgNode = imgNode = img.cloneNode(false);
+					imgNode.className = 'a3d-tri-img';
+					imgNode.style.display = 'block';
+					imgNode.style.position = 'absolute';
+					imgNode.style.left = '0';
+					imgNode.style.top = '0';
+					rotNode.appendChild(imgNode);
+					
+					a3d.avoidSelect(node);
+					
+					// We only need to build the inverse texture projection once
+					
+					// Find texture screen position
+					var imgX = tri.originX, imgY = tri.originY;
+					
+					var bw = w, bh = h;
+					
+					var m = tri.iuuvm;
+					var pp = this.svv1;
+					pp.x = imgX; pp.y = imgY;
+					pp.trans(m, pp);
+					
+					// Small optimization for square textures
+					var hypot, sinTheta, cosTheta, theta, rotRad;
+					if (bw == bh) {
+						hypot = 1.414213562373*bw;
+						sinTheta = cosTheta = 0.707106781186;
+						theta = rotRad = 0.785398163397;
+					} else {
+						hypot = this.sqrt(bw*bw + bh*bh);
+						var invHypot = 1.0/hypot;
+						sinTheta = bw*invHypot;
+						//theta = this.asin(sinTheta);
+						cosTheta = bh*invHypot;
+						theta = this.acos(cosTheta);
+						rotRad = this.halfPI - theta;
+					}
+					
+					var cropHeight = bh*sinTheta;
+					var rotOff = bh*cosTheta;
+					
+					if (this.$B == 1) {	// FF
+						node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+						imgNode.style.MozTransform = m.toCssString();
+						
+						rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
+						rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
+						unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+						
+						rotNode.style.left = '' + rotOff + 'px';
+						offsetNode.style.left = '-' + rotOff + 'px';
+						
+						unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					} else if (this.$B == 2) { // Webkit
+						node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
+						imgNode.style.WebkitTransform = m.toCssString();
+						
+						rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
+						rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
+						unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
+						
+						rotNode.style.left = '' + rotOff + 'px';
+						offsetNode.style.left = '-' + rotOff + 'px';
+						
+						unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					} else if (this.$B == 3) { // IE
+						m.applyIeFilter(imgNode);
+						
+						rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+						unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+						
+						var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
+						var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
+						f.M11 = cosRot; f.M12 = -sinRot;
+						f.M21 = sinRot; f.M22 = cosRot;
+						
+						var irotRad = -rotRad;
+						var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
+						var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
+						f.M11 = cosIRot; f.M12 = -sinIRot;
+						f.M21 = sinIRot; f.M22 = cosIRot;
+						
+						node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+						unrotNode.style.width = '' + hypot + 'px';
+						unrotNode.style.left = '' + (-bw*0.5) + 'px';
+						unrotNode.style.top = '' + (-bh*0.5) + 'px';
+						
+						var offX = 0.0, offY = 0.0;
+					
+						if (m._11 < 0) offX += m._11;
+						if (m._21 < 0) offX += m._21;
+						if (m._12 < 0) offY += m._12;
+						if (m._22 < 0) offY += m._22;
+						
+						pp.x -= offX*bw; pp.y -= offY*bh;
+					}
+					
+					cropNode.style.width = '' + hypot + 'px';
+					cropNode.style.height = '' + cropHeight + 'px';
+					
+					stri.bw = bw; stri.bh = bh;
+					stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
+					
+					//imgNode.style.left = '' + (-(pp.x + 64)) + 'px';
+					imgNode.style.left = '' + (-pp.x) + 'px';
+					imgNode.style.top = '' + (-pp.y) + 'px';
+					
+					/*			
+					var img2 = imgNode.cloneNode(false);
+					document.body.appendChild(img2);
+					//this.viewport.node.appendChild(img2);
+					if (this.$B == 3)
+						m.applyIeFilter(img2);
+					//console.log(img2);
+					*/
 				} else {
-					hypot = this.sqrt(bw*bw + bh*bh);
-					var invHypot = 1.0/hypot;
-					sinTheta = bw*invHypot;
-					//theta = this.asin(sinTheta);
-					cosTheta = bh*invHypot;
-					theta = this.acos(cosTheta);
-					rotRad = this.halfPI - theta;
+					if (node.style.display != 'block') {
+						node.style.display = 'block';
+					}
+					imgNode = stri.imgNode;
+					unrotNode = stri.unrotNode;
+					offsetNode = stri.offsetNode;
+					cropNode = stri.cropNode;
+					rotNode = stri.rotNode;
 				}
 				
-				var cropHeight = bh*sinTheta;
-				var rotOff = bh*cosTheta;
+				// Maybe move the matrix multiply math inline for an optimization?
+				var aff2d = this.sm21;
+				aff2d._11 = d12x; aff2d._12 = d12y;
+				aff2d._21 = d13x; aff2d._22 = d13y;
+				
+				//aff2d.scale(1.05);
+				
+				aff2d.scaleXY(stri.invBw, stri.invBh);
 				
 				if (this.$B == 1) {	// FF
-					node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
-					imgNode.style.MozTransform = m.toCssString();
+					node.style.MozTransform = aff2d.toCssString();
 					
-					rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
-					rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
-					unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
-					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
-					
-					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					node.style.left = '' + v1x + 'px';
+					node.style.top = '' + v1y + 'px';
 				} else if (this.$B == 2) { // Webkit
-					node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
-					imgNode.style.WebkitTransform = m.toCssString();
+					node.style.WebkitTransform = aff2d.toCssString();
 					
-					rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
-					rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
-					unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
-					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
-					
-					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					node.style.left = '' + v1x + 'px';
+					node.style.top = '' + v1y + 'px';
 				} else if (this.$B == 3) { // IE
-					m.applyIeFilter(imgNode);
+					aff2d.applyIeFilter(node);
 					
-					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-					
-					var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
-					var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
-					f.M11 = cosRot; f.M12 = -sinRot;
-					f.M21 = sinRot; f.M22 = cosRot;
-					
-					var irotRad = -rotRad;
-					var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
-					var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
-					f.M11 = cosIRot; f.M12 = -sinIRot;
-					f.M21 = sinIRot; f.M22 = cosIRot;
-					
-					node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
-					unrotNode.style.width = '' + hypot + 'px';
-					unrotNode.style.left = '' + (-bw*0.5) + 'px';
-					unrotNode.style.top = '' + (-bh*0.5) + 'px';
-					
+					// Account for the fact that IE's "auto expand" matrix offsets the origin.
+					// Took forever to arrive at this elegant, mathematically correct fix.
 					var offX = 0.0, offY = 0.0;
-				
-					if (m._11 < 0) offX += m._11;
-					if (m._21 < 0) offX += m._21;
-					if (m._12 < 0) offY += m._12;
-					if (m._22 < 0) offY += m._22;
 					
-					pp.x -= offX*bw; pp.y -= offY*bh;
+					if (d12x < 0) offX += d12x;
+					if (d13x < 0) offX += d13x;
+					if (d12y < 0) offY += d12y;
+					if (d13y < 0) offY += d13y;
+					
+					var screenX = v1x + offX, screenY = v1y + offY;
+					
+					node.style.left = '' + screenX + 'px';
+					node.style.top = '' + screenY + 'px';
 				}
-				
-				cropNode.style.width = '' + hypot + 'px';
-				cropNode.style.height = '' + cropHeight + 'px';
-				
-				stri.bw = bw; stri.bh = bh;
-				stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
-				
-				//imgNode.style.left = '' + (-(pp.x + 64)) + 'px';
-				imgNode.style.left = '' + (-pp.x) + 'px';
-				imgNode.style.top = '' + (-pp.y) + 'px';
-				
-				/*			
-				var img2 = imgNode.cloneNode(false);
-				document.body.appendChild(img2);
-				//this.viewport.node.appendChild(img2);
-				if (this.$B == 3)
-					m.applyIeFilter(img2);
-				//console.log(img2);
-				*/
 			} else {
-				if (node.style.display != 'block') {
-					node.style.display = 'block';
+				// drawTrianglesColor()
+				
+				// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
+				// from the texture image to the triangle, not counting translation yet
+				var w = 64, h = 64;
+				
+				// Ensure existence of the proxy DOM object
+				var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
+				//console.log(imgNode.nodeName);
+				if (!node || !imgNode || imgNode.nodeName != 'DIV') {
+					// Cleanup other render types
+					if (node) node.parentNode.removeChild(node);
+					if (imgNode) imgNode.parentNode.removeChild(imgNode);
+					
+					var triFrag = this.triFrag.cloneNode(true);
+					stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
+					
+					stri.unrotNode = unrotNode = node.firstChild;
+					stri.offsetNode = offsetNode = unrotNode.firstChild;
+					stri.cropNode = cropNode = offsetNode.firstChild;
+					stri.rotNode = rotNode = cropNode.firstChild;
+					
+					stri.imgNode = imgNode = document.createElement('div');
+					imgNode.style.backgroundColor = shader.color.str;
+					imgNode.style.width = '' + w + 'px';
+					imgNode.style.height = '' + h + 'px';
+					imgNode.style.display = 'block';
+					imgNode.style.position = 'absolute';
+					imgNode.style.left = '0';
+					imgNode.style.top = '0';
+					rotNode.appendChild(imgNode);
+					//this.viewport.node.appendChild(imgNode);
+					
+					// We only need to build the inverse texture projection once
+					
+					var bw = w, bh = h;
+					
+					var hypot = 1.414213562373*bw,
+					    sinTheta = cosTheta = 0.707106781186,
+					    theta = rotRad = 0.785398163397;
+					
+					var cropHeight = bh*sinTheta;
+					var rotOff = bh*cosTheta;
+					
+					if (this.$B == 1) {	// FF
+						node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+						
+						rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
+						rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
+						unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
+						
+						rotNode.style.left = '' + rotOff + 'px';
+						offsetNode.style.left = '-' + rotOff + 'px';
+						
+						unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					} else if (this.$B == 2) { // Webkit
+						node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
+						
+						rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
+						rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
+						unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
+						
+						rotNode.style.left = '' + rotOff + 'px';
+						offsetNode.style.left = '-' + rotOff + 'px';
+						
+						unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					} else if (this.$B == 3) { // IE
+						rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+						unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+						
+						var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
+						//console.log(cosRot);
+						//console.log(sinRot);
+						var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
+						f.M11 = cosRot; f.M12 = -sinRot;
+						f.M21 = sinRot; f.M22 = cosRot;
+						
+						var irotRad = -rotRad;
+						var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
+						var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
+						f.M11 = cosIRot; f.M12 = -sinIRot;
+						f.M21 = sinIRot; f.M22 = cosIRot;
+						
+						node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+						unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+						unrotNode.style.width = '' + hypot + 'px';
+						unrotNode.style.left = '' + (-bw*0.5) + 'px';
+						unrotNode.style.top = '' + (-bh*0.5) + 'px';
+					}
+					
+					cropNode.style.width = '' + hypot + 'px';
+					cropNode.style.height = '' + cropHeight + 'px';
+					
+					stri.bw = bw; stri.bh = bh;
+					stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
+		
+				} else {
+					if (node.style.display != 'block') {
+						node.style.display = 'block';
+					}
+					imgNode = stri.imgNode;
+					unrotNode = stri.unrotNode;
+					offsetNode = stri.offsetNode;
+					cropNode = stri.cropNode;
+					rotNode = stri.rotNode;
 				}
-				imgNode = stri.imgNode;
-				unrotNode = stri.unrotNode;
-				offsetNode = stri.offsetNode;
-				cropNode = stri.cropNode;
-				rotNode = stri.rotNode;
-			}
-			
-			// Maybe move the matrix multiply math inline for an optimization?
-			var aff2d = this.sm21;
-			aff2d._11 = d12x; aff2d._12 = d12y;
-			aff2d._21 = d13x; aff2d._22 = d13y;
-			
-			//aff2d.scale(1.05);
-			
-			aff2d.scaleXY(stri.invBw, stri.invBh);
-			
-			if (this.$B == 1) {	// FF
-				node.style.MozTransform = aff2d.toCssString();
 				
-				node.style.left = '' + v1x + 'px';
-				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 2) { // Webkit
-				node.style.WebkitTransform = aff2d.toCssString();
+				// Maybe move the matrix multiply math inline for an optimization?
+				var aff2d = this.sm21;
+				aff2d._11 = d12x; aff2d._12 = d12y;
+				aff2d._21 = d13x; aff2d._22 = d13y;
 				
-				node.style.left = '' + v1x + 'px';
-				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 3) { // IE
-				aff2d.applyIeFilter(node);
 				
-				// Account for the fact that IE's "auto expand" matrix offsets the origin.
-				// Took forever to arrive at this elegant, mathematically correct fix.
-				var offX = 0.0, offY = 0.0;
-				
-				if (d12x < 0) offX += d12x;
-				if (d13x < 0) offX += d13x;
-				if (d12y < 0) offY += d12y;
-				if (d13y < 0) offY += d13y;
-				
-				var screenX = v1x + offX, screenY = v1y + offY;
-				
-				node.style.left = '' + screenX + 'px';
-				node.style.top = '' + screenY + 'px';
-			}
-			
-			node.style.zIndex = this.viewport.z++;
-		}
-	}
-	
-	, drawTrianglesColor: function(stris) {
-		var trisl = stris.length;
-		for (var i = 0; i < trisl; ++i) {
-			var stri = stris[i];
-			var tri = stri.tri;
-			var uvm = tri.uvm, iuvm = tri.iuvm;
-			if (!iuvm) continue;
-			
-			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
-			
-			var v1x = sv1.x, v1y = sv1.y, v2x = sv2.x, v2y = sv2.y, v3x = sv3.x, v3y = sv3.y;
-			//var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
-			
-			// Attempt to account for seams
-			var center = this.sv1.set(sv1).add(sv2).add(sv3).div(3.0);
-			var dir1x = sv1.x - center.x, dir1y = sv1.y - center.y
-			  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
-			  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
-			
-			off1x = dir1x*0.1; off1y = dir1y*0.1;
-			off2x = dir2x*0.1; off2y = dir2y*0.1;
-			off3x = dir3x*0.1; off3y = dir3y*0.1;
-			
-			v1x += off1x; v2x += off2x; v3x += off3x;
-			v1y += off1y; v2y += off2y; v3y += off3y;
-			var d12x = v2x - v1x, d12y = v2y - v1y, d13x = v3x - v1x, d13y = v3y - v1y;
-			
-			var winding = d13y*d12x - d13x*d12y;
-			if (winding < 0) {
-				if (stri.node && stri.node.style.display != 'none') {
-					stri.node.style.display = 'none';
-				}
-				continue;
-			}
-			
-			var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
-			
-			// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
-			// from the texture image to the triangle, not counting translation yet
-			var w = 64, h = 64;
-			
-			// Ensure existence of the proxy DOM object
-			var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
-			//console.log(imgNode.nodeName);
-			if (!node || !imgNode || imgNode.nodeName != 'DIV') {
-				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
-				if (imgNode) imgNode.parentNode.removeChild(imgNode);
-				
-				var triFrag = this.triFrag.cloneNode(true);
-				stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
-				
-				stri.unrotNode = unrotNode = node.firstChild;
-				stri.offsetNode = offsetNode = unrotNode.firstChild;
-				stri.cropNode = cropNode = offsetNode.firstChild;
-				stri.rotNode = rotNode = cropNode.firstChild;
-				
-				stri.imgNode = imgNode = document.createElement('div');
-				imgNode.style.backgroundColor = '#009999';
-				imgNode.style.width = '' + w + 'px';
-				imgNode.style.height = '' + h + 'px';
-				imgNode.style.display = 'block';
-				imgNode.style.position = 'absolute';
-				imgNode.style.left = '0';
-				imgNode.style.top = '0';
-				rotNode.appendChild(imgNode);
-				//this.viewport.node.appendChild(imgNode);
-				
-				// We only need to build the inverse texture projection once
-				
-				var bw = w, bh = h;
-				
-				var hypot = 1.414213562373*bw,
-				    sinTheta = cosTheta = 0.707106781186,
-				    theta = rotRad = 0.785398163397;
-				
-				var cropHeight = bh*sinTheta;
-				var rotOff = bh*cosTheta;
+				aff2d.scaleXY(stri.invBw, stri.invBh);
 				
 				if (this.$B == 1) {	// FF
-					node.style.MozTransformOrigin = imgNode.style.MozTransformOrigin = 'top left';
+					node.style.MozTransform = aff2d.toCssString();
 					
-					rotNode.style.MozTransformOrigin = unrotNode.style.MozTransformOrigin = 'top left';
-					rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
-					unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
-					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
-					
-					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					node.style.left = '' + v1x + 'px';
+					node.style.top = '' + v1y + 'px';
 				} else if (this.$B == 2) { // Webkit
-					node.style.WebkitTransformOrigin = imgNode.style.WebkitTransformOrigin = 'top left';
+					node.style.WebkitTransform = aff2d.toCssString();
 					
-					rotNode.style.WebkitTransformOrigin = unrotNode.style.WebkitTransformOrigin = 'top left';
-					rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
-					unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
-					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
-					
-					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+					node.style.left = '' + v1x + 'px';
+					node.style.top = '' + v1y + 'px';
 				} else if (this.$B == 3) { // IE
-					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+					aff2d.applyIeFilter(node);
 					
-					var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
-					//console.log(cosRot);
-					//console.log(sinRot);
-					var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
-					f.M11 = cosRot; f.M12 = -sinRot;
-					f.M21 = sinRot; f.M22 = cosRot;
+					// Account for the fact that IE's "auto expand" matrix offsets the origin.
+					// Took forever to arrive at this elegant, mathematically correct fix.
+					var offX = 0.0, offY = 0.0;
 					
-					var irotRad = -rotRad;
-					var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
-					var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
-					f.M11 = cosIRot; f.M12 = -sinIRot;
-					f.M21 = sinIRot; f.M22 = cosIRot;
+					if (d12x < 0) offX += d12x;
+					if (d13x < 0) offX += d13x;
+					if (d12y < 0) offY += d12y;
+					if (d13y < 0) offY += d13y;
 					
-					node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
-					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
-					unrotNode.style.width = '' + hypot + 'px';
-					unrotNode.style.left = '' + (-bw*0.5) + 'px';
-					unrotNode.style.top = '' + (-bh*0.5) + 'px';
+					var screenX = v1x + offX, screenY = v1y + offY;
+					
+					node.style.left = '' + screenX + 'px';
+					node.style.top = '' + screenY + 'px';
 				}
-				
-				cropNode.style.width = '' + hypot + 'px';
-				cropNode.style.height = '' + cropHeight + 'px';
-				
-				stri.bw = bw; stri.bh = bh;
-				stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
-	
-			} else {
-				if (node.style.display != 'block') {
-					node.style.display = 'block';
-				}
-				imgNode = stri.imgNode;
-				unrotNode = stri.unrotNode;
-				offsetNode = stri.offsetNode;
-				cropNode = stri.cropNode;
-				rotNode = stri.rotNode;
 			}
-			
-			// Maybe move the matrix multiply math inline for an optimization?
-			var aff2d = this.sm21;
-			aff2d._11 = d12x; aff2d._12 = d12y;
-			aff2d._21 = d13x; aff2d._22 = d13y;
-			
-			
-			aff2d.scaleXY(stri.invBw, stri.invBh);
-			
-			if (this.$B == 1) {	// FF
-				node.style.MozTransform = aff2d.toCssString();
-				
-				node.style.left = '' + v1x + 'px';
-				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 2) { // Webkit
-				node.style.WebkitTransform = aff2d.toCssString();
-				
-				node.style.left = '' + v1x + 'px';
-				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 3) { // IE
-				aff2d.applyIeFilter(node);
-				
-				// Account for the fact that IE's "auto expand" matrix offsets the origin.
-				// Took forever to arrive at this elegant, mathematically correct fix.
-				var offX = 0.0, offY = 0.0;
-				
-				if (d12x < 0) offX += d12x;
-				if (d13x < 0) offX += d13x;
-				if (d12y < 0) offY += d12y;
-				if (d13y < 0) offY += d13y;
-				
-				var screenX = v1x + offX, screenY = v1y + offY;
-				
-				node.style.left = '' + screenX + 'px';
-				node.style.top = '' + screenY + 'px';
-			}
+			node.style.zIndex = this.z++;
 		}
 	}
 });
@@ -1695,8 +1681,9 @@ a3d.Vert = a3d.Vec3.extend({
 a3d.Triangle = a3d.SceneNode.extend({
 	  v1: null, v2: null, v3: null
 	, vn1: null, vn2: null, vn3: null
-	, uv1: null, uv2: null, uv3: null
 	, center: null
+	, camCenter: null
+	, uv1: null, uv2: null, uv3: null
 	, uvm: null			// The texture projection matrix
 	, iuvm: null		// The inverse texture projection matrix
 	, uuvm: null
@@ -1724,6 +1711,8 @@ a3d.Triangle = a3d.SceneNode.extend({
 		
 		this.center = v1.clone().add(v2).add(v3);
 		this.center.div(3.0);
+		
+		this.camCenter = new a3d.Vec3();
 	}
 	
 	, setTexture: function(img) {
@@ -1794,7 +1783,7 @@ a3d.MeshLoader = {
 	  newMesh: function(name, vs, vns, uvs, fs, fns) {
 		var md = new a3d.MeshData();
 		md.vs = vs; md.vns = vns; md.uvs = uvs; md.fs = fs; md.fns = fns;
-		var m = new a3d.Mesh(md);
+		var m = new a3d.Mesh({data: md});
 		m.name = name;
 		
 		return m;
@@ -1879,6 +1868,7 @@ a3d.MeshLoader = {
 		
 		if (vs.length > 0 && objs.length == 0) {	// Handle data not in a named object
 			var m = this.newMesh('[noname]', vs, vns, uvs, fs, fns);
+			m.shader = new a3d.TextureShader();
 			objs.push(m);
 		}
 		
@@ -1952,18 +1942,60 @@ a3d.TextureLib = Class.extend({
 });
 a3d.$TexLib = new a3d.TextureLib();
 
+a3d.ShaderType = {
+	  COLOR: 0
+	, TXTUR: 1
+};
+a3d.Shader = Class.extend({
+	  type: 0
+	, callbacks: null
+	  
+	, init: function(cfg) {
+		a3d.setup(this, cfg);
+		this.callbacks = {};
+	}
+});
+
+a3d.ColorShader = a3d.Shader.extend({
+	  type: a3d.ShaderType.COLOR
+	  
+	, color: a3d.Blue
+});
+
+a3d.TextureShader = a3d.Shader.extend({
+	  type: a3d.ShaderType.TXTUR
+	, color: a3d.Blue
+	
+	, textures: null
+	
+	, init: function(cfg) {
+		this._super(cfg);
+		
+		this.textures = [];
+	}
+	
+	, addTextureImage: function(img) {
+		this.textures.push(img);
+		var cb;
+		if (cb = this.callbacks['texturechange']) {
+			cb(this.textures);
+		}
+	}
+	, addTextureUrl: function(url) {
+		a3d.$TexLib.get(url, a3d.bind(this, function(img) {
+			this.addTextureImage(img);
+		}));
+	}
+})
+
+a3d.$DefaultShader = new a3d.ColorShader({color: a3d.DarkGray});
+
 a3d.Mesh = a3d.SceneNode.extend({
 	  data: null
-	, textures: null
-	, hasTexture: false
 	, stris: null
 	
-	, init: function(data) {
-		this._super();
-		
-		this.data = (data) ? data : null;
-		this.hasTexture = false;
-		this.textures = [];
+	, init: function(cfg) {
+		this._super(cfg);
 		
 		if (this.data) this.build();
 	}
@@ -1976,36 +2008,28 @@ a3d.Mesh = a3d.SceneNode.extend({
 		var dl = data.fs.length;
 		if (dl == 0) return;
 
+		var shader = this.shader;
+		shader.callbacks['texturechange'] = a3d.bind(this, this.buildTextures);
 		var tris = data.fs;
 		this.stris = new Array(dl);
 		for (var i = 0; i < dl; ++i) {
-			this.stris[i] = new a3d.ScreenTriangle(tris[i]);
+			var tri = tris[i];
+			tri.shader = shader;
+			this.stris[i] = new a3d.ScreenTriangle(tri);
 		}
 		
 		this.moveToCenter();
 	}
-	, addTextureImage: function(img) {
+	, buildTextures: function(imgs) {
 		var tris = this.data.fs;
 		var trisl = tris.length;
-		for (var i = 0; i < trisl; ++i) {
-			var tri = tris[i];
-			tri.setTexture(img);
-		}
-		this.textures.push(img);
-	}
-	, addTextureUrl: function(url) {
-		var self = this;
-		this.hasTexture = true;
 		
-		a3d.$TexLib.get(url, function(img) {
-			var tris = self.data.fs;
-			var trisl = tris.length;
-			for (var i = 0; i < trisl; ++i) {
-				var tri = tris[i];
+		for (var i = 0, img; img = imgs[i]; ++i) {
+			for (var j = 0; j < trisl; ++j) {
+				var tri = tris[j];
 				tri.setTexture(img);
 			}
-			self.textures.push(img);
-		});
+		}
 	}
 	
 	, moveToCenter: function() {
@@ -2043,41 +2067,14 @@ a3d.Mesh = a3d.SceneNode.extend({
 	//	this._super(r);
 	//}
 	
-	, _renderColor: function(r) {
-		var stris = this.stris;
-		
-		r.camera.projectTris(this.cm, stris);
-		r.drawTrianglesColor(stris);
-	}
-	, _renderTexture: function(r) {
-		var stris = this.stris;
-		
-		r.camera.projectTris(this.cm, stris);
-		r.drawTrianglesTexture(stris);
-	}
-	
-	, triCmp: function(tri1, tri2) {
-		return (tri2.center.z - tri1.center.z);
-	}
-	
-	, zSort: function() {
-		this.stris.sort(this.triCmp);
-	}
-	
 	, _render: function(r) {
 		if (!this.data) return;
 		
-		this.zSort();
+		r.camera.projectTris(this.cm, this.stris);
 		
-		if (this.hasTexture && r.camera.detail == a3d.Render.Detail.TXTUR) {
-			if (this.textures.length) {
-				this._renderTexture(r);
-			} else {
-				// TODO: show a substitute texture or something
-			}
-		} else {
-			this._renderColor(r);
-		}
+		// Super fast in-place concat, taken from
+		// http://ejohn.org/blog/javascript-array-remove/
+		r.stris.push.apply(r.stris, this.stris);
 	}
 	
 	, remove: function(r) {

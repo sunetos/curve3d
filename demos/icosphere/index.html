@@ -36,9 +36,9 @@
 				
 				a3d.MeshLoader.loadOBJ('adamia-3d-test-03.obj', function(meshes) {
 					mesh = meshes[0];
-					mesh.addTextureUrl('adamia-test-texture.png');
+					mesh.shader.addTextureUrl('adamia-test-texture.png');
 					mesh.scaleBy(90, 90, 90);
-					mesh.moveTo(0, 0, 0);
+					mesh.moveTo(0, 0, 250);
 					v.scene.addChild(mesh);
 					
 					v.play();

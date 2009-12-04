@@ -36,9 +36,9 @@
 				
 				a3d.MeshLoader.loadOBJ('robot-dragon-fixed.obj', function(meshes) {
 					mesh = meshes[0];
-					mesh.addTextureUrl('robot-dragon-texture.png');
+					mesh.shader.addTextureUrl('robot-dragon-texture.png');
 					mesh.scaleBy(40, 40, 40);
-					mesh.moveTo(0, 0, 0);
+					mesh.moveTo(0, 0, 250);
 					v.scene.addChild(mesh);
 					
 					v.play();
