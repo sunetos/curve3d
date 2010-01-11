@@ -1,0 +1,177 @@
+
+/**
+ * Enum for render options
+ * @enum {number}
+ */
+a3d.Render = {
+	  Projection: {
+		  ORTHO: 0
+		, PERSP: 1
+	}
+	, Detail: {
+		  PTS: 0
+		, WIRE: 1
+		, COLOR: 2
+		, TXTUR: 4
+	}
+};
+
+/** 
+ * A special scenegraph Node that represents a camera for a viewport.
+ * @extends a3d.Node
+ */
+a3d.Camera = a3d.Node.extend({
+	  viewport: null
+	, projection: 0
+	, detail: 4
+	, aspRatio: 1.0
+	, fov: 90.0
+	, nearZ: 0.01
+	, farZ: 100.0
+	
+	, vw: 0
+	, vh: 0
+	, viewM: null
+	, invM: null
+	
+	// scratch vars
+	, sv1: null, sv2: null, sv3: null
+	
+	/** constructor */
+	, init: function(cfg) {
+		a3d.setup(this, cfg);
+		
+		this.viewM = new a3d.Mat4();
+		this.invM = new a3d.Mat4();
+		
+		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
+		
+		this._super();
+	}
+	
+	, viewportResize: function() {
+		this.vw = this.viewport.w;
+		this.vh = this.viewport.h;
+		this.aspRatio = this.vw/this.vh;
+		
+		var m = this.viewM;
+		
+		if (this.projection == a3d.Render.Projection.ORTHO) {
+			m.ident();
+		} else {
+			m.perspective(this.aspRatio, this.fov, this.nearZ, this.farZ);
+		}
+		
+		m._14 = this.viewport.halfW;
+		m._24 = this.viewport.halfH;
+		//m._33 = 0.0;
+	}
+	
+	// Project from world coordinates to screen coordinates. Saves result in sv.
+	, projectVert: function(pm, wv, sv) {
+		sv.trans(pm, wv);
+		sv.trans(this.viewM, sv);
+	}
+	
+	// Project from world coordinates to screen coordinates. Saves result in stri.
+	, projectTris: function(pm, stris) {
+		var screenM = this.viewM;
+		var trisl = stris.length;
+		
+		for (var i = 0; i < trisl; ++i) {
+			var stri = stris[i];
+			var wtri = stri.tri;
+			
+			var v1 = wtri.v1, v2 = wtri.v2, v3 = wtri.v3;
+			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
+			
+			// The world-and-camera-transformed verts
+			sv1.trans(pm, v1); sv2.trans(pm, v2); sv3.trans(pm, v3);
+			wtri.camCenter.set(sv1).add(sv2).add(sv3);	// Don't bother dividing by 3
+			
+			// The screen-transformed verts
+			sv1.trans(screenM, sv1); sv2.trans(screenM, sv2); sv3.trans(screenM, sv3);
+			
+			stri.center.set(sv1).add(sv2).add(sv3);		// Don't bother dividing by 3
+		}
+	}
+	//, _update: update
+	, update: function(pm, dt) {
+		this._super(pm, dt);
+		this.invM.inv3m(this.cm);
+	}
+});
+
+// This class would be marked as abstract if that were possible
+a3d.RendererBase = Class.extend({
+	  viewport: null
+	, camera: null
+	, detail: 0
+	, z: 0			// Track current z-index
+	, stris: []		// All polys to render this frame
+	, vw: 0
+	, vh: 0
+	
+	// scratch vars to prevent per-frame object allocation
+	, sv1: null, sv2: null, sv3: null
+	, svv1: null
+	, sm41: null, sm42: null, sm43: null
+	, sm21: null, sm22: null, sm23: null
+	
+	, init: function(cfg) {
+		a3d.setup(this, cfg);
+		
+		this.stris = [];
+		
+		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
+		this.svv1 = new a3d.Vec2();
+		this.sm41 = new a3d.Mat4(); this.sm42 = new a3d.Mat4(); this.sm43 = new a3d.Mat4();
+		this.sm21 = new a3d.Mat2(); this.sm22 = new a3d.Mat2(); this.sm23 = new a3d.Mat2();
+	}
+	
+	// Different subclasses of RendererBase, optimized for different browsers,
+	// might need to use a different subclass of SceneNode
+	, getSceneNodeClass: function() {
+		return a3d.SceneNode;
+	}
+	
+	, viewportResize: function() {
+		this.vw = this.viewport.w;
+		this.vh = this.viewport.h;
+	}
+	
+	, render: function(scene) {
+		this._clear();
+		this._render(scene);
+		this._flip();
+	}
+	
+	, remove: function(stris) {;}
+	
+	, _render: function(scene) {
+		this.z = 0;
+		this.stris.length = 0;
+		
+		scene.render(this);
+		this.zSort();
+		this.drawTriangles(this.stris);
+	}
+	
+	// These functions really should be pure virtual
+	, _clear: function() {a3d.trace('_clear');}
+	, _flip: function() {a3d.trace(' _flip');}
+	
+	, triCmpZaxis: function(tri1, tri2) {
+		return (tri2.center.z - tri1.center.z);	// z-axis sort
+	}
+	
+	, triCmpCamDist: function(tri1, tri2) {
+		// This works because camCenter is in camera space
+		var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
+		return tri2z - tri1z;
+	}
+	
+	, zSort: function() {
+		this.stris.sort(this.triCmpZaxis);
+	}
+});

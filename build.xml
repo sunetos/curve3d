@@ -9,7 +9,7 @@
 	<property description="Path to output targets" name="dist" value="./dist" />
 	
 	<!-- Choose amongst: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS -->
-	<property name="compilation-level" value="ADVANCED_OPTIMIZATIONS" />
+	<property name="compilation-level" value="SIMPLE_OPTIMIZATIONS" />
 	<property name="warning-level" value="QUIET" />
 	
 	<property name="A3D" value="${dist}/adamia3d.js" />
@@ -24,7 +24,17 @@
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
 			<fileset file="src/math.js" />
+			<fileset file="src/util.js" />
 			<fileset file="src/engine.js" />
+			<fileset file="src/render/renderer.js" />
+			<fileset file="src/render/renderercanvas.js" />
+			<fileset file="src/render/renderercss3.js" />
+			<!-- <fileset file="src/render/renderersvg.js" /> -->
+			<fileset file="src/shaders/color.js" />
+			<fileset file="src/shaders/shader.js" />
+			<fileset file="src/geometry/primitives.js" />
+			<fileset file="src/geometry/mesh.js" />
+			<fileset file="src/loaders/loader.js" />
 		</concat>
 		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3D}" />
 		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3D}" />
@@ -64,7 +74,7 @@
 		<concat destfile="${A3D-MIN}">
 			<filelist files="${A3D}, dist/tmpmin"/>
 			<filterchain>
-				<headfilter lines="10"/>
+				<headfilter lines="11"/>
 			</filterchain>
 		</concat>
 		<concat destfile="${A3D-MIN}" append="yes">
