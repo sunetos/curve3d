@@ -1,15 +1,4 @@
-/*
-* Adamia 3D Engine
-* Copyright (c) 2009 Adam R. Smith
-* Licensed under the new BSD License:
-* http://www.opensource.org/licenses/bsd-license.php
-*
-* Project home: http://code.google.com/p/adamia-3d/
-*/
-
 // TODO: Figure out the namespace desired and wrap the whole thing in a single closure
-
-if (typeof(a3d) == 'undefined') a3d = {};
 
 adamia3d = function() {
 
