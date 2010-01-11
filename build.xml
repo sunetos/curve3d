@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="adamia-3d" basedir="." default="min">
+	<property name="closurePath" value="${projectPath}/closure" />
+	<tstamp>
+		<format property="A3D-DATE" pattern="MM/dd/yyyy" locale="en,US"/>
+	</tstamp>
+	
+	<loadfile property="version" srcfile="version.txt" />
+	<property description="Path to output targets" name="dist" value="./dist" />
+	
+	<!-- Choose amongst: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS -->
+	<property name="compilation-level" value="ADVANCED_OPTIMIZATIONS" />
+	<property name="warning-level" value="QUIET" />
+	
+	<property name="A3D" value="${dist}/adamia3d.js" />
+	<property name="A3D-MIN" value="${dist}/adamia3d.min.js" />
+	<property name="A3DMATH" value="${dist}/adamia3d-math.js" />
+	<property name="A3DMATH-MIN" value="${dist}/adamia3d-math.min.js" />
+	
+	<target name="adamia3d" description="Full source build">
+		<echo message="Building ${A3D}" />
+		<mkdir dir="${dist}" />
+		<concat destfile="${A3D}">
+			<fileset file="src/init.js" />
+			<fileset file="src/class.js" />
+			<fileset file="src/math.js" />
+			<fileset file="src/engine.js" />
+		</concat>
+		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3D}" />
+		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3D}" />
+		<echo message="${A3D} built." />
+	</target>
+	
+	<target name="math" description="Math library, source build">
+		<echo message="Building ${A3DMATH}" />
+		<mkdir dir="${dist}" />
+		<concat destfile="${A3DMATH}">
+			<fileset file="src/init.js" />
+			<fileset file="src/class.js" />
+			<fileset file="src/math.js" />
+		</concat>
+		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3DMATH}" />
+		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3DMATH}" />
+		<echo message="${A3DMATH} built." />
+	</target>
+	
+	<target name="min" depends="adamia3d" description="Minification">
+		<echo message="Building ${A3D-MIN}" />
+		<apply executable="java" parallel="false" verbose="true" dest="${dist}">
+			<fileset dir="${dist}">
+				<include name="adamia3d.js" />
+			</fileset>
+			<arg line="-jar" />
+			<arg path="build/closure-compiler.jar" />
+			<arg value="--compilation_level" />
+			<arg value="${compilation-level}" />
+			<arg value="--warning_level" />
+			<arg value="${warning-level}" />
+			<arg value="--js_output_file" />
+			<targetfile />
+			<arg value="--js" />
+			<mapper type="glob" from="adamia3d.js" to="tmpmin" />
+		</apply>
+		<concat destfile="${A3D-MIN}">
+			<filelist files="${A3D}, dist/tmpmin"/>
+			<filterchain>
+				<headfilter lines="10"/>
+			</filterchain>
+		</concat>
+		<concat destfile="${A3D-MIN}" append="yes">
+			<filelist files="dist/tmpmin"/>
+		</concat>
+		<delete file="dist/tmpmin"/>
+		<echo message="${A3D-MIN} built." />
+	</target>
+	
+	<target name="math-min" depends="math" description="Minification, math library only">
+		<echo message="Building ${A3DMATH-MIN}" />
+		<apply executable="java" parallel="false" verbose="true" dest="${dist}">
+			<fileset dir="${dist}">
+				<include name="adamia3d-math.js" />
+			</fileset>
+			<arg line="-jar" />
+			<arg path="build/closure-compiler.jar" />
+			<arg value="--compilation_level" />
+			<arg value="${compilation-level}" />
+			<arg value="--warning_level" />
+			<arg value="${warning-level}" />
+			<arg value="--js_output_file" />
+			<targetfile />
+			<arg value="--js" />
+			<mapper type="glob" from="adamia3d-math.js" to="tmpmin" />
+		</apply>
+		<concat destfile="${A3DMATH-MIN}">
+			<filelist files="${A3DMATH}, dist/tmpmin"/>
+			<filterchain>
+				<headfilter lines="10"/>
+			</filterchain>
+		</concat>
+		<concat destfile="${A3DMATH-MIN}" append="yes">
+			<filelist files="dist/tmpmin"/>
+		</concat>
+		<delete file="dist/tmpmin"/>
+		<echo message="${A3DMATH-MIN} built." />
+	</target>
+	
+	<target name="clean">
+		<delete dir="${dist}" />
+	</target>
+</project>
