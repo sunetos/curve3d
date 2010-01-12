@@ -86,7 +86,7 @@ a3d.vecCmp = function(v1, v2) {
 // Minimalist ajax data fetcher. Only intended for loading models.
 // Async is the only support mode, no intention of allowing synchronous in JS.
 // Built off of jQuery 1.3.2 source by deleting 90% of the ajax() function.
-a3d.get = function(url, success, fail) {
+a3d.get = function(url, success, fail, binary) {
 	var xhr = window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
 	var contentType = 'text/plain';
 	var async = true;
@@ -97,6 +97,7 @@ a3d.get = function(url, success, fail) {
 	try {
 		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 		xhr.setRequestHeader("Accept", contentType);
+		if (binary) xhr.overrideMimeType("text/plain; charset=x-user-defined");
 	} catch(e){}
 	
 	var onreadystatechange = function(){

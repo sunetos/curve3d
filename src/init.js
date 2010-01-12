@@ -1,7 +1,7 @@
-/*
-* @license
+/**
+* @preserve
 * Adamia 3D Engine v@VERSION
-* @author Copyright (c) 2010 Adam R. Smith
+* Copyright (c) 2010 Adam R. Smith
 * Licensed under the new BSD License:
 * http://www.opensource.org/licenses/bsd-license.php
 *

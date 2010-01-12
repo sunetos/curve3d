@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+
+	<title>Adamia 3D Demo Suite</title>
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
+	
+	<style type="text/css">
+		#output {
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/bytearray.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+			var logNode = null;
+			var logText = '';
+			function log(text) {
+				if (!logNode) logNode = $('#output');
+				
+				logText += text.toString() + '\n';
+				logNode.text(logText);
+				
+				//console.log(text);
+			}
+			$(document).ready(function() {
+				// Compare the output here to the output from the test SWF.
+				// If all worked, they should be identical.
+	
+				var files = [{filename: 'bigendian.blob', endian: a3d.Endian.BIG, name: 'Big Endian'},
+					{filename: 'littleendian.blob', endian: a3d.Endian.LITTLE, name: 'Little Endian'}];
+				for (var fileIndex in files) {
+					var file = files[fileIndex];
+
+					$.ajax({async: false, url: file['filename'], beforeSend: function(xhr) {
+						xhr.overrideMimeType('text/plain; charset=x-user-defined');
+					}, success: function(data){
+						log(file['name']);
+						
+						var ba = new a3d.ByteArray(data, file['endian']);
+						log(ba.readBoolean());
+						log(ba.readBoolean());
+						log(ba.readByte());
+						log(ba.readShort());
+						log(ba.readShort());
+						log(ba.readUnsignedInt());
+						log(ba.readInt());
+						log(ba.readInt());
+						log(ba.readFloat());
+						log(ba.readFloat());
+						log(ba.readDouble());
+						log(ba.readDouble());
+						log(ba.readDouble());
+						log(ba.readDouble());
+						log(ba.readDouble());
+						log(ba.readDouble());
+						log('');
+					}});
+					
+				}
+			});
+	</script>
+</head>
+<body>
+	<pre id="output"></pre>
+
+</body>
+</html>

@@ -1,4 +1,11 @@
 // Renderable objects
+/**
+ * @extends a3d.SceneNode
+ * @param {number} x
+ * @param {number} y
+ * @param {number} z
+ * @param {a3d.Color} col
+ */
 a3d.Point = a3d.SceneNode.extend({
 	  col: a3d.Black
 	  
