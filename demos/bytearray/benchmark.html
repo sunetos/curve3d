@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+
+	<title>Adamia 3D Demo Suite</title>
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/bytearray.js" type="text/javascript" charset="utf-8"></script>
+	<script src="binary-parser.js" type="text/javascript" charset="utf-8"></script>
+	<script src="JSLitmus.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+			$(document).ready(function() {
+				// Compare the output here to the output from the test SWF.
+				// If all worked, they should be identical.
+	
+				var files = [{filename: 'bigendian.blob', endian: a3d.Endian.BIG, name: 'Big Endian'},
+					{filename: 'littleendian.blob', endian: a3d.Endian.LITTLE, name: 'Little Endian'}];
+				for (var fileIndex in files) {
+					var file = files[fileIndex];
+
+					$.ajax({async: false, url: file['filename'], beforeSend: function(xhr) {
+						xhr.overrideMimeType('text/plain; charset=x-user-defined');
+					}, success: function(data){
+						// Test the a3d.ByteArray
+						var ba = new a3d.ByteArray(data, file['endian']);
+						JSLitmus.test('a3d.ByteArray', function(count) {
+							while (count--) {
+								ba.pos = 0;
+								
+								ba.readBoolean();
+								ba.readBoolean();
+								ba.readByte();
+								ba.readShort();
+								ba.readShort();
+								ba.readUnsignedInt();
+								ba.readInt();
+								ba.readInt();
+								ba.readFloat();
+								ba.readFloat();
+								ba.readDouble();
+								ba.readDouble();
+								ba.readDouble();
+								ba.readDouble();
+								ba.readDouble();
+								ba.readDouble();
+							}
+						});
+						
+						// Test the BinaryParser
+						var bp = new BinaryParser(file['endian'] == a3d.Endian.BIG, false);
+						var d1  = data.substr(0, 1);
+						var d2  = data.substr(1, 1);
+						var d3  = data.substr(2, 1);
+						var d4  = data.substr(3, 2);
+						var d5  = data.substr(5, 2);
+						var d6  = data.substr(7, 4);
+						var d7  = data.substr(11, 4);
+						var d8  = data.substr(15, 4);
+						var d9  = data.substr(19, 4);
+						var d10 = data.substr(23, 4);
+						var d11 = data.substr(27, 8);
+						var d12 = data.substr(35, 8);
+						var d13 = data.substr(43, 8);
+						var d14 = data.substr(51, 8);
+						var d15 = data.substr(59, 8);
+						var d16 = data.substr(67, 8);
+						JSLitmus.test('BinaryParser', function(count) {
+							while (count--) {
+								bp.toByte(d1);
+								bp.toByte(d2);
+								bp.toByte(d3);
+								bp.toShort(d4);
+								bp.toShort(d5);
+								bp.toDWord(d6);
+								bp.toInt(d7);
+								bp.toInt(d8);
+								bp.toFloat(d9);
+								bp.toFloat(d10);
+								bp.toDouble(d11);
+								bp.toDouble(d12);
+								bp.toDouble(d13);
+								bp.toDouble(d14);
+								bp.toDouble(d15);
+								bp.toDouble(d16);
+							}
+						});
+					}});
+					
+				}
+			});
+	</script>
+</head>
+<body>
+
+</body>
+</html>
