@@ -61,7 +61,11 @@
 				ba.writeDouble(0.0000000007);
 				ba.writeDouble(-0.0000000007);
 				ba.writeDouble(934839483947.89789797);
-				ba.writeDouble(-934839483947.89789797);
+				ba.writeDouble( -934839483947.89789797);
+				ba.writeUTFBytes('monkey1');
+				ba.writeByte(0);
+				ba.writeUTFBytes('monkey2');
+				ba.writeByte(0);
 				
 				file = File.desktopDirectory.resolvePath(endianInfo['filename']);
 				stream = new FileStream();

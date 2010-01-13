@@ -188,4 +188,22 @@ a3d.ByteArray = Class.extend({
 			return 0.0;
 		return sign*(1.0 + this.TWOeN52*sig)*this.pow(2, exp);
 	}
+	
+	/**
+	 * Read a null-terminated ASCII string.
+	 */
+	, readCString: function() {
+		var data = this.data, pos = this.pos;
+		var len = this.length - pos;
+		
+		var chars = [];
+		for (var i = 0; i < len; ++i) {
+			var b = this.data.charCodeAt(pos++)&0xFF;
+			if (b == 0) break;
+			
+			chars.push(String.fromCharCode(b));
+		}
+		this.pos = pos;
+		return chars.join('');
+	}
 });
