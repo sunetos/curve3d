@@ -5,11 +5,10 @@
 		<format property="A3D-DATE" pattern="MM/dd/yyyy" locale="en,US"/>
 	</tstamp>
 	
-	<loadfile property="version" srcfile="version.txt" />
 	<property description="Path to output targets" name="dist" value="./dist" />
 	
 	<!-- Choose amongst: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS -->
-	<property name="compilation-level" value="SIMPLE_OPTIMIZATIONS" />
+	<property name="compilation-level" value="ADVANCED_OPTIMIZATIONS" />
 	<property name="warning-level" value="QUIET" />
 	
 	<property name="A3D" value="${dist}/adamia3d.js" />
@@ -19,10 +18,24 @@
 	<property name="A3DBYTE" value="${dist}/bytearray.js" />
 	<property name="A3DBYTE-MIN" value="${dist}/bytearray.min.js" />
 	
-	<target name="adamia3d" description="Full source build">
-		<echo message="Building ${A3D}" />
+	<loadfile property="VERSION" srcfile="version.txt" />
+	<loadfile property="HEADER" srcFile="src/header.js">
+		<filterchain>
+			<replacetokens>
+				<token key="VERSION" value="${VERSION}" />
+				<token key="DATE" value="${A3D-DATE}" />
+			</replacetokens>
+		</filterchain>
+	</loadfile>
+	
+	<target name="init" description="Setup for all targets">
 		<mkdir dir="${dist}" />
+	</target>
+	
+	<target name="adamia3d" depends="init" description="Full source build">
+		<echo message="Building ${A3D}" />
 		<concat destfile="${A3D}">
+			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
 			<fileset file="src/math.js" />
@@ -39,15 +52,13 @@
 			<fileset file="src/loaders/bytearray.js" />
 			<fileset file="src/loaders/loader.js" />
 		</concat>
-		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3D}" />
-		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3D}" />
 		<echo message="${A3D} built." />
 	</target>
 	
-	<target name="math" description="Math library, source build">
+	<target name="math" depends="init" description="Math library, source build">
 		<echo message="Building ${A3DMATH}" />
-		<mkdir dir="${dist}" />
 		<concat destfile="${A3DMATH}">
+			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
 			<fileset file="src/math.js" />
@@ -57,10 +68,10 @@
 		<echo message="${A3DMATH} built." />
 	</target>
 	
-	<target name="bytearray" description="Math library, source build">
+	<target name="bytearray" depends="init" description="Math library, source build">
 		<echo message="Building ${A3DBYTE}" />
-		<mkdir dir="${dist}" />
 		<concat destfile="${A3DBYTE}">
+			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
 			<fileset file="src/loaders/bytearray.js" />
@@ -71,27 +82,57 @@
 	</target>
 	
 	<target name="min" depends="adamia3d" description="Minification">
-		<echo message="Building ${A3D-MIN}" />
-		<exec input="${A3D}" output="${A3D-MIN}" executable="java">
-            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level}" />
+		<property name="IN" value="${A3D}" />
+		<property name="OUT" value="${A3D-MIN}" />
+		
+		<echo message="Building ${OUT}" />
+		<exec input="${IN}" output="${OUT}.tmp" executable="java">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_output_file=${OUT}.prop.map" />
         </exec>
-		<echo message="${A3D-MIN} built." />
+		<replaceregexp match="^([^:]+):([^:]+)" replace="\2:\1" flags="g" byline="true" file="${OUT}.prop.map" />
+		<replaceregexp match="^/[*]" replace="/** @preserve" flags="g" byline="true" file="${OUT}.tmp" />
+		<exec executable="java" input="${OUT}.tmp" output="${OUT}">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_input_file=${OUT}.prop.map" />
+        </exec>
+		<delete file="${OUT}.tmp" />
+		<delete file="${OUT}.prop.map" />
+		<echo message="${OUT} built." />
 	</target>
 	
 	<target name="math-min" depends="math" description="Minification, math library only">
-		<echo message="Building ${A3DMATH-MIN}" />
-		<exec input="${A3DMATH}" output="${A3DMATH-MIN}" executable="java">
-            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level}" />
+		<property name="IN" value="${A3DMATH}" />
+		<property name="OUT" value="${A3DMATH-MIN}" />
+		
+		<echo message="Building ${OUT}" />
+		<exec input="${IN}" output="${OUT}.tmp" executable="java">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_output_file=${OUT}.prop.map" />
         </exec>
-		<echo message="${A3DMATH-MIN} built." />
+		<replaceregexp match="^([^:]+):([^:]+)" replace="\2:\1" flags="g" byline="true" file="${OUT}.prop.map" />
+		<replaceregexp match="^/[*]" replace="/** @preserve " flags="g" byline="true" file="${OUT}.tmp" />
+		<exec executable="java" input="${OUT}.tmp" output="${OUT}">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_input_file=${OUT}.prop.map" />
+        </exec>
+		<delete file="${OUT}.tmp" />
+		<delete file="${OUT}.prop.map" />
+		<echo message="${OUT} built." />
 	</target>
 	
 	<target name="bytearray-min" depends="bytearray" description="Minification, bytearray only">
-		<echo message="Building ${A3DBYTE-MIN}" />
-		<exec input="${A3DBYTE}" output="${A3DBYTE-MIN}" executable="java">
-            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level}" />
+		<property name="IN" value="${A3DBYTE}" />
+		<property name="OUT" value="${A3DBYTE-MIN}" />
+		
+		<echo message="Building ${OUT}" />
+		<exec input="${IN}" output="${OUT}.tmp" executable="java">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_output_file=${OUT}.prop.map" />
         </exec>
-		<echo message="${A3DBYTE-MIN} built." />
+		<replaceregexp match="^([^:]+):([^:]+)" replace="\2:\1" flags="g" byline="true" file="${OUT}.prop.map" />
+		<replaceregexp match="^/[*]" replace="/** @preserve " flags="g" byline="true" file="${OUT}.tmp" />
+		<exec executable="java" input="${OUT}.tmp" output="${OUT}">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_input_file=${OUT}.prop.map" />
+        </exec>
+		<delete file="${OUT}.tmp" />
+		<delete file="${OUT}.prop.map" />
+		<echo message="${OUT} built." />
 	</target>
 	
 	<target name="clean">
