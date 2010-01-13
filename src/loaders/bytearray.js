@@ -124,14 +124,14 @@ a3d.ByteArray = Class.extend({
 	
 	, readUInt32LE: function() {
 		var data = this.data, pos = (this.pos += 4);
-		return	((data.charCodeAt(--pos)   & 0xFF) << 24) |
+		return	((data.charCodeAt(--pos) & 0xFF) << 24) |
 				((data.charCodeAt(--pos) & 0xFF) << 16) |
 				((data.charCodeAt(--pos) & 0xFF) << 8) |
 				 (data.charCodeAt(--pos) & 0xFF);
 	}
 	, readInt32LE: function() {
 		var data = this.data, pos = (this.pos += 4);
-		var x =	((data.charCodeAt(--pos)   & 0xFF) << 24) |
+		var x =	((data.charCodeAt(--pos) & 0xFF) << 24) |
 				((data.charCodeAt(--pos) & 0xFF) << 16) |
 				((data.charCodeAt(--pos) & 0xFF) << 8) |
 				 (data.charCodeAt(--pos) & 0xFF);
@@ -140,12 +140,12 @@ a3d.ByteArray = Class.extend({
 	
 	, readUInt16LE: function() {
 		var data = this.data, pos = (this.pos += 2);
-		return	((data.charCodeAt(--pos)   & 0xFF) << 8) |
+		return	((data.charCodeAt(--pos) & 0xFF) << 8) |
 				 (data.charCodeAt(--pos) & 0xFF);
 	}
 	, readInt16LE: function() {
 		var data = this.data, pos = (this.pos += 2);
-		var x =	((data.charCodeAt(--pos)   & 0xFF) << 8) |
+		var x =	((data.charCodeAt(--pos) & 0xFF) << 8) |
 				 (data.charCodeAt(--pos) & 0xFF);
 		return (x >= 32768) ? x - 65536 : x;
 	}
