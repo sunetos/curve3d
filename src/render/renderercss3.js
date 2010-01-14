@@ -98,7 +98,7 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 			}
 			
 			var shader = tri.shader;
-			if (texturing && shader.type == 1 && shader.textures.length) {		// a3d.ShaderType.TXTUR
+			if (texturing && shader.type == a3d.ShaderType.TXTUR && shader.textures.length) {
 				// drawTrianglesTexture()
 				
 				var imgs = shader.textures;
@@ -313,7 +313,7 @@ a3d.RendererCss3 = a3d.RendererBase.extend({
 					stri.rotNode = rotNode = cropNode.firstChild;
 					
 					stri.imgNode = imgNode = document.createElement('div');
-					imgNode.style.backgroundColor = shader.color.str;
+					if (shader.diffuse) imgNode.style.backgroundColor = shader.diffuse.str;
 					imgNode.style.width = '' + w + 'px';
 					imgNode.style.height = '' + h + 'px';
 					imgNode.style.display = 'block';

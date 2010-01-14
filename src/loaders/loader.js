@@ -1,5 +1,93 @@
+/**
+ * Lightweight container for the raw data that describes a mesh.
+ */
+a3d.MeshData = Class.extend({
+	  name: ''
+	, vs: []	// verts
+	, vns: []	// vert normals
+	, uvs: []	// UV coords
+	, fs: []	// faces
+	, fns: []	// face normals
+	, mats: []	// face lists for separate shaders
+	, sd: null	// shader data for constructing a shader
+	
+	, init: function() {
+		this.clear();	// must do this the first time, so that Class variables arent referenced
+	}
+	, clear: function() {
+		this.vs = []; this.vns = []; this.uvs = [];
+		this.fs = []; this.fns = []; this.mats = [];
+	}
+});
 
-// Static class, just call the functions directly without instantiating a MeshLoader
+a3d.ShaderData = Class.extend({
+	  name: ''
+	, type: a3d.ShaderType.WIRE
+	, urls: []
+	, shader: null
+	
+	, init: function(name, type) {
+		this.name = name;
+		if (type) this.type = type;
+		this.urls = [];
+	}
+});
+a3d.ShaderDataLib = Class.extend({
+	  lib: {}
+	, init: function() {
+		this.lib = {};
+	}
+	, get: function(name) {
+		var sd = this.lib[name];
+		if (sd) return sd;
+		
+		sd = new a3d.ShaderData(name);
+		this.lib[name] = sd;
+		return sd;
+	}
+});
+
+/**
+ * Keep separate url parts for base path and filename.
+ * This will allow easier building of texture urls.
+ */
+a3d.LoaderBase = Class.extend({
+	  baseUrl: ''
+	, file: ''
+	, sds: null		// shader datas
+	
+	, init: function(url, data) {
+		var uri = url.split('?')[0];	// chop querystring
+		var pieces = uri.split('/');
+		
+		this.baseUrl = pieces.slice(0, -1).join('/') + '/';
+		this.file = pieces.slice(-1)[0];
+		this.sds = new a3d.ShaderDataLib;
+	}
+	
+	, buildShaders: function() {
+		for (var name in this.sds.lib) {
+			var sd = this.sds.lib[name];
+			
+			if (sd.type == a3d.ShaderType.WIRE) {
+				sd.shader = new a3d.WireShader(sd);
+			} else if (sd.type == a3d.ShaderType.COLOR) {
+				sd.shader = new a3d.ColorShader(sd);
+			} else if (sd.type == a3d.ShaderType.TXTUR) {
+				sd.shader = new a3d.TextureShader(sd);
+				
+				for (var j = 0; j < sd.urls.length; ++j) {
+					sd.shader.addTextureUrl(sd.urls[j]);
+				}
+			}
+		}
+	}
+});
+
+/**
+ * Static class, just call the functions directly without instantiating a MeshLoader.
+ * @static
+ */
 a3d.MeshLoader = {
 	  newMesh: function(name, vs, vns, uvs, fs, fns) {
 		var md = new a3d.MeshData();
@@ -9,7 +97,7 @@ a3d.MeshLoader = {
 		
 		return m;
 	}
-	, parseOBJ: function(obj) {
+	, parseOBJ: function(url, obj) {
 		var vs = [], vns = [], uvs = [], fs = [], fns = [];
 		
 		var lines = obj.split("\n");
@@ -103,31 +191,46 @@ a3d.MeshLoader = {
 		return objs;
 	}
 	
-	// Optionally lets you specify your own loadFunc to let jQuery or your favorite lib do the work.
-	// Just make sure its params are: url, successFunc, failFunc
+	, parse3DS: function(url, data) {
+		var loader = new a3d.Loader3ds(url, data);
+		loader.parse();
+		return loader.meshes;
+	}
+	
+	/**
+	 * Optionally lets you specify your own loadFunc to let jQuery or your favorite lib do the work.
+	 * Just make sure its params are: url, successFunc, failFunc
+	 * @static
+	 */
 	, loadOBJ: function(url, success, fail, loadFunc) {
-		if (!loadFunc) loadFunc = a3d.get;
+		if (!loadFunc) {
+			loadFunc = a3d.get;
+		}
 		
 		var objData = loadFunc(url, function(data) {
-			if (success) success(a3d.MeshLoader.parseOBJ(data));
+			if (success) success(a3d.MeshLoader.parseOBJ(url, data));
+		}, function() {
+			if (fail) fail(null);
+		});
+	}
+	
+	/**
+	 * Optionally lets you specify your own loadFunc to let jQuery or your favorite lib do the work.
+	 * Just make sure its params are: url, successFunc, failFunc
+	 * @static
+	 */
+	, load3DS: function(url, success, fail, loadFunc) {
+		if (!loadFunc) {
+			loadFunc = function(u, s, f){
+				a3d.get(u, s, f, true);	// load binary
+			}
+		}
+		
+		var objData = loadFunc(url, function(data) {
+			if (success) success(a3d.MeshLoader.parse3DS(url, data));
 		}, function() {
 			if (fail) fail(null);
 		});
 	}
 };
 
-a3d.MeshData = Class.extend({
-	  vs: []	// verts
-	, vns: []	// vert normals
-	, uvs: []	// UV coords
-	, fs: []	// faces
-	, fns: []	// face normals
-	
-	, init: function() {
-		this.clear();	// must do this the first time, so that Class variables arent referenced
-	}
-	, clear: function() {
-		this.vs = []; this.vns = []; this.uvs = [];
-		this.fs = []; this.fns = [];
-	}
-});

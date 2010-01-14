@@ -51,6 +51,7 @@
 			<fileset file="src/geometry/mesh.js" />
 			<fileset file="src/loaders/bytearray.js" />
 			<fileset file="src/loaders/loader.js" />
+			<fileset file="src/loaders/loader3ds.js" />
 		</concat>
 		<echo message="${A3D} built." />
 	</target>

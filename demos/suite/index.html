@@ -19,6 +19,7 @@
 		#content {
 			width: 400px;
 			height: 300px;
+			color: #999999;
 		}
 		
 		#control-panel {
@@ -78,8 +79,12 @@
 				var meshName = '';
 				var autoRot = true;
 				var camNode = new a3d.Node();
+				var meshContainer = new a3d.SceneNode();
+				meshContainer.moveTo(0, 0, 250);
+				
 				v.scene.addChild(camNode);
 				camNode.addChild(v.camera);
+				v.scene.addChild(meshContainer);
 				
 				$('#a3d-quality').change(function() {
 					var quality = $('#a3d-quality :selected').val();
@@ -110,7 +115,7 @@
 					if (meshName == selMesh) return;
 					
 					if (mesh) {
-						v.scene.removeChild(mesh);
+						meshContainer.removeChild(mesh);
 						mesh.remove(v.renderer);
 					}
 					
@@ -121,8 +126,7 @@
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../fish/piranhaSkin.jpg');
 							mesh.scaleBy(150, 150, 150);
-							mesh.moveTo(0, 0, 250);
-							v.scene.addChild(mesh);
+							meshContainer.addChild(mesh);
 							
 							if (v.paused) v.play();
 						});
@@ -131,8 +135,7 @@
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
 							mesh.scaleBy(90, 90, 90);
-							mesh.moveTo(0, 0, 250);
-							v.scene.addChild(mesh);
+							meshContainer.addChild(mesh);
 							
 							if (v.paused) v.play();
 						});
@@ -141,8 +144,17 @@
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../robot-dragon/robot-dragon-texture.png');
 							mesh.scaleBy(20, 20, 20);
-							mesh.moveTo(0, 0, 250);
-							v.scene.addChild(mesh);
+							meshContainer.addChild(mesh);
+							
+							if (v.paused) v.play();
+						});
+					} else if (meshName == 'Guitar') {
+						a3d.MeshLoader.load3DS('meshes/guitar/cLarBodM.3ds', function(meshes) {
+							mesh = meshes[0];
+							mesh.scaleBy(4, 4, 4);
+							mesh.rotX(Math.PI*1.4);
+							mesh.moveBy(0, -10, 0);
+							meshContainer.addChild(mesh);
 							
 							if (v.paused) v.play();
 						});
@@ -155,7 +167,9 @@
 				$('#a3d-mesh').change();
 				
 				v.onTick(function(dt) {
-					if (mesh && autoRot) mesh.rotY(1.5*dt);
+					if (mesh && autoRot) {
+						meshContainer.rotY(1.5*dt);
+					}
 					
 					// Demonstrate camera parenting under a scene node
 					//camNode.moveBy(0, 0.5, 0);
@@ -235,6 +249,7 @@
 				<option>Icosphere</option>
 				<option>Fish</option>
 				<option>Robot Dragon</option>
+				<option>Guitar</option>
 			</select>
 			
 			<h4>Quality:</h4>

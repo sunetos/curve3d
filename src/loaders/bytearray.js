@@ -41,7 +41,7 @@ a3d.ByteArray = Class.extend({
 		// Add redundant members that match actionscript for compatibility
 		var funcMap = {readUnsignedByte: 'readByte', readUnsignedInt: 'readUInt32',
 			readFloat: 'readFloat32', readDouble: 'readFloat64', readShort: 'readInt16',
-			readBoolean: 'readBool', readInt: 'readInt32'};
+			readBoolean: 'readBool', readInt: 'readInt32', readUnsignedShort: 'readUInt16'};
 		for (var func in funcMap) {
 			this[func] = this[funcMap[func]];
 		}

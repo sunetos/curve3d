@@ -65,9 +65,9 @@ a3d.trim = function(str) {
 	return str.slice(start, end + 1);
 };
 
-a3d.trace = function(stuff) {
+a3d.trace = function() {
 	if (typeof(console) != 'undefined') {
-		console.log(stuff);
+		console.log.apply(console, arguments);
 	}
 }
 

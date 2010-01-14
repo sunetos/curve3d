@@ -136,7 +136,6 @@ a3d.Mesh = a3d.SceneNode.extend({
 		if (dl == 0) return;
 
 		var shader = this.shader;
-		shader.callbacks['texturechange'] = a3d.bind(this, this.buildTextures);
 		var tris = data.fs;
 		this.stris = new Array(dl);
 		for (var i = 0; i < dl; ++i) {
@@ -146,6 +145,11 @@ a3d.Mesh = a3d.SceneNode.extend({
 		}
 		
 		this.moveToCenter();
+		
+		shader.callbacks['texturechange'] = a3d.bind(this, this.buildTextures);
+		if (shader.textures && shader.textures.length) {
+			this.buildTextures(shader.textures);
+		}
 	}
 	, buildTextures: function(imgs) {
 		var tris = this.data.fs;
