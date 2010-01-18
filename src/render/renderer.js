@@ -1,106 +1,105 @@
 
+a3d.Render = {};
+
 /**
- * Enum for render options
+ * Enum for render projection (orthographic or perspective).
  * @enum {number}
  */
-a3d.Render = {
-	  Projection: {
-		  ORTHO: 0
-		, PERSP: 1
-	}
-	, Detail: {
-		  PTS: 0
-		, WIRE: 1
-		, COLOR: 2
-		, TXTUR: 4
-	}
+a3d.Render.Projection = {
+	  ORTHO: 0
+	, PERSP: 1
+};
+/**
+ * Enum for render detail level (points, wireframe, solid color, textured).
+ * @enum {number}
+ */
+a3d.Render.Detail = {
+	  PTS: 0
+	, WIRE: 1
+	, COLOR: 2
+	, TXTUR: 4
 };
 
 /** 
  * A special scenegraph Node that represents a camera for a viewport.
- * @extends a3d.Node
+ * @constructor
+ * @extends {a3d.Node}
  */
-a3d.Camera = a3d.Node.extend({
-	  viewport: null
-	, projection: 0
-	, detail: 4
-	, aspRatio: 1.0
-	, fov: 90.0
-	, nearZ: 0.01
-	, farZ: 100.0
+a3d.Camera = function(cfg) {
+	this.viewport = null;
+	this.projection = 0;
+	this.detail = 4;
+	this.aspRatio = 1.0;
+	this.fov = 90.0;
+	this.nearZ = 0.01;
+	this.farZ = 100.0;
 	
-	, vw: 0
-	, vh: 0
-	, viewM: null
-	, invM: null
+	this.vw = 0;
+	this.vh = 0;
+	
+	a3d.setup(this, cfg);
+	
+	this.viewM = new a3d.Mat4();
+	this.invM = new a3d.Mat4();
 	
 	// scratch vars
-	, sv1: null, sv2: null, sv3: null
+	this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
 	
-	/** constructor */
-	, init: function(cfg) {
-		a3d.setup(this, cfg);
-		
-		this.viewM = new a3d.Mat4();
-		this.invM = new a3d.Mat4();
-		
-		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
-		
-		this._super();
-	}
+	a3d.Node.call(this);
+};
+a3d.inherits(a3d.Camera, a3d.Node);
 	
-	, viewportResize: function() {
-		this.vw = this.viewport.w;
-		this.vh = this.viewport.h;
-		this.aspRatio = this.vw/this.vh;
-		
-		var m = this.viewM;
-		
-		if (this.projection == a3d.Render.Projection.ORTHO) {
-			m.ident();
-		} else {
-			m.perspective(this.aspRatio, this.fov, this.nearZ, this.farZ);
-		}
-		
-		m._14 = this.viewport.halfW;
-		m._24 = this.viewport.halfH;
-		//m._33 = 0.0;
+a3d.Camera.prototype.viewportResize = function() {
+	this.vw = this.viewport.w;
+	this.vh = this.viewport.h;
+	this.aspRatio = this.vw/this.vh;
+	
+	var m = this.viewM;
+	
+	if (this.projection == a3d.Render.Projection.ORTHO) {
+		m.ident();
+	} else {
+		m.perspective(this.aspRatio, this.fov, this.nearZ, this.farZ);
 	}
 	
-	// Project from world coordinates to screen coordinates. Saves result in sv.
-	, projectVert: function(pm, wv, sv) {
-		sv.trans(pm, wv);
-		sv.trans(this.viewM, sv);
-	}
+	m._14 = this.viewport.halfW;
+	m._24 = this.viewport.halfH;
+	//m._33 = 0.0;
+};
+
+// Project from world coordinates to screen coordinates. Saves result in sv.
+a3d.Camera.prototype.projectVert = function(pm, wv, sv) {
+	sv.trans(pm, wv);
+	sv.trans(this.viewM, sv);
+};
+
+// Project from world coordinates to screen coordinates. Saves result in stri.
+a3d.Camera.prototype.projectTris = function(pm, stris) {
+	var screenM = this.viewM;
+	var trisl = stris.length;
 	
-	// Project from world coordinates to screen coordinates. Saves result in stri.
-	, projectTris: function(pm, stris) {
-		var screenM = this.viewM;
-		var trisl = stris.length;
+	for (var i = 0; i < trisl; ++i) {
+		var stri = stris[i];
+		var wtri = stri.tri;
 		
-		for (var i = 0; i < trisl; ++i) {
-			var stri = stris[i];
-			var wtri = stri.tri;
-			
-			var v1 = wtri.v1, v2 = wtri.v2, v3 = wtri.v3;
-			var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
-			
-			// The world-and-camera-transformed verts
-			sv1.trans(pm, v1); sv2.trans(pm, v2); sv3.trans(pm, v3);
-			wtri.camCenter.set(sv1).add(sv2).add(sv3);	// Don't bother dividing by 3
-			
-			// The screen-transformed verts
-			sv1.trans(screenM, sv1); sv2.trans(screenM, sv2); sv3.trans(screenM, sv3);
-			
-			stri.center.set(sv1).add(sv2).add(sv3);		// Don't bother dividing by 3
-		}
+		var v1 = wtri.v1, v2 = wtri.v2, v3 = wtri.v3;
+		var sv1 = stri.v1, sv2 = stri.v2, sv3 = stri.v3;
+		
+		// The world-and-camera-transformed verts
+		sv1.trans(pm, v1); sv2.trans(pm, v2); sv3.trans(pm, v3);
+		wtri.camCenter.set(sv1).add(sv2).add(sv3);	// Don't bother dividing by 3
+		
+		// The screen-transformed verts
+		sv1.trans(screenM, sv1); sv2.trans(screenM, sv2); sv3.trans(screenM, sv3);
+		
+		stri.center.set(sv1).add(sv2).add(sv3);		// Don't bother dividing by 3
 	}
-	//, _update: update
-	, update: function(pm, dt) {
-		this._super(pm, dt);
-		this.invM.inv3m(this.cm);
-	}
-});
+};
+//, _update: update
+a3d.Camera.prototype.update = function(pm, dt) {
+	a3d.Camera._super.update.call(this, pm, dt);
+	this.invM.inv3m(this.cm);
+};
 
 // This class would be marked as abstract if that were possible
 a3d.RendererBase = Class.extend({

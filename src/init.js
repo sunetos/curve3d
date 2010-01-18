@@ -1,4 +1,2 @@
-if (typeof(a3d) == 'undefined') {
-	/** @namespace */ a3d = {};
-}
+var a3d = a3d || {};
 
