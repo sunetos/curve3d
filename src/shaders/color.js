@@ -1,24 +1,18 @@
 /**
  * Convenient wrapper for getting hex colors as CSS strings and the like.
- * @extends Class
+ * @constructor
  */
-a3d.Color = Class.extend({
-	  num: 0x000000
-	, r: 0, g: 0, b: 0
-	, str: ''
-	
-	/** @constructor */
-	, init: function(num) {
-		this.set(num);
-	}
-	, set: function(num) {
-		num = num & 0xFFFFFF;
-		this.num = num;
-		this.r = num >> 16; this.g = (num >> 8) & 0xFF; this.b = num & 0xFF;
-		//this.str = 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
-		this.str = '#' + a3d.padLeft(num.toString(16), 6, '0');
-	}
-});
+a3d.Color = function(num) {
+	this.set(num);
+};
+a3d.Color.prototype.set = function(num) {
+	num = num & 0xFFFFFF;
+	this.num = num;
+	this.r = num >> 16; this.g = (num >> 8) & 0xFF; this.b = num & 0xFF;
+	//this.str = 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
+	this.str = '#' + a3d.padLeft(num.toString(16), 6, '0');
+};
+
 /** @const */ a3d.Black = new a3d.Color(0x000000);
 /** @const */ a3d.White = new a3d.Color(0xFFFFFF);
 /** @const */ a3d.Red = new a3d.Color(0xFF0000);

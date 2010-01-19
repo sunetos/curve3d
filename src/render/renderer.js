@@ -101,76 +101,71 @@ a3d.Camera.prototype.update = function(pm, dt) {
 	this.invM.inv3m(this.cm);
 };
 
-// This class would be marked as abstract if that were possible
-a3d.RendererBase = Class.extend({
-	  viewport: null
-	, camera: null
-	, detail: 0
-	, z: 0			// Track current z-index
-	, stris: []		// All polys to render this frame
-	, vw: 0
-	, vh: 0
+
+/**
+ * This class would be marked as abstract if that were possible.
+ * 
+ * @constructor
+ */
+a3d.RendererBase = function(cfg) {
+	this.viewport = null;
+	this.camera = null;
+	this.detail = 0;
+	this.z = 0;				// Track current z-index
+	this.stris = [];		// All polys to render this frame
+	this.vw = 0;
+	this.vh = 0;
 	
-	// scratch vars to prevent per-frame object allocation
-	, sv1: null, sv2: null, sv3: null
-	, svv1: null
-	, sm41: null, sm42: null, sm43: null
-	, sm21: null, sm22: null, sm23: null
+	a3d.setup(this, cfg);
 	
-	, init: function(cfg) {
-		a3d.setup(this, cfg);
-		
-		this.stris = [];
-		
-		this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
-		this.svv1 = new a3d.Vec2();
-		this.sm41 = new a3d.Mat4(); this.sm42 = new a3d.Mat4(); this.sm43 = new a3d.Mat4();
-		this.sm21 = new a3d.Mat2(); this.sm22 = new a3d.Mat2(); this.sm23 = new a3d.Mat2();
-	}
+	this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
+	this.svv1 = new a3d.Vec2();
+	this.sm41 = new a3d.Mat4(); this.sm42 = new a3d.Mat4(); this.sm43 = new a3d.Mat4();
+	this.sm21 = new a3d.Mat2(); this.sm22 = new a3d.Mat2(); this.sm23 = new a3d.Mat2();
+};
 	
-	// Different subclasses of RendererBase, optimized for different browsers,
-	// might need to use a different subclass of SceneNode
-	, getSceneNodeClass: function() {
-		return a3d.SceneNode;
-	}
+// Different subclasses of RendererBase, optimized for different browsers,
+// might need to use a different subclass of SceneNode
+a3d.RendererBase.prototype.getSceneNodeClass = function() {
+	return a3d.SceneNode;
+};
+
+a3d.RendererBase.prototype.viewportResize = function() {
+	this.vw = this.viewport.w;
+	this.vh = this.viewport.h;
+};
+
+a3d.RendererBase.prototype.render = function(scene) {
+	this._clear();
+	this._render(scene);
+	this._flip();
+};
+
+a3d.RendererBase.prototype.remove = function(stris) {;};
+
+a3d.RendererBase.prototype._render = function(scene) {
+	this.z = 0;
+	this.stris.length = 0;
 	
-	, viewportResize: function() {
-		this.vw = this.viewport.w;
-		this.vh = this.viewport.h;
-	}
-	
-	, render: function(scene) {
-		this._clear();
-		this._render(scene);
-		this._flip();
-	}
-	
-	, remove: function(stris) {;}
-	
-	, _render: function(scene) {
-		this.z = 0;
-		this.stris.length = 0;
-		
-		scene.render(this);
-		this.zSort();
-		this.drawTriangles(this.stris);
-	}
-	
-	// These functions really should be pure virtual
-	, _clear: function() {a3d.trace('_clear');}
-	, _flip: function() {a3d.trace(' _flip');}
-	
-	, triCmpZaxis: function(tri1, tri2) {
-		return (tri2.center.z - tri1.center.z);	// z-axis sort
-	}
-	
-	, triCmpCamDist: function(tri1, tri2) {
-		// This works because camCenter is in camera space
-		var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
-		return tri2z - tri1z;
-	}
-	
-	, zSort: function() {
-		this.stris.sort(this.triCmpZaxis);
-	}
-});
+	scene.render(this);
+	this.zSort();
+	this.drawTriangles(this.stris);
+};
+
+// These functions really should be pure virtual
+a3d.RendererBase.prototype._clear = function() {a3d.trace('_clear');};
+a3d.RendererBase.prototype._flip = function() {a3d.trace(' _flip');};
+
+a3d.RendererBase.prototype.triCmpZaxis = function(tri1, tri2) {
+	return (tri2.center.z - tri1.center.z);	// z-axis sort
+};
+
+a3d.RendererBase.prototype.triCmpCamDist = function(tri1, tri2) {
+	// This works because camCenter is in camera space
+	var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
+	return tri2z - tri1z;
+};
+
+a3d.RendererBase.prototype.zSort = function() {
+	this.stris.sort(this.triCmpZaxis);
+};
