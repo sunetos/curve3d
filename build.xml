@@ -74,7 +74,6 @@
 		<concat destfile="${A3DBYTE}">
 			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
-			<fileset file="src/class.js" />
 			<fileset file="src/loaders/bytearray.js" />
 		</concat>
 		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3DBYTE}" />
