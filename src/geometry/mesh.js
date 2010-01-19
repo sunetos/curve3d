@@ -1,21 +1,29 @@
-a3d.UV = a3d.Vec2.extend({
-	  clone: function() {
-		return new a3d.UV(this.x, this.y);
-	}
-});
+/**
+ * @constructor
+ * @extends {a3d.Vec2}
+ */
+a3d.UV = function(x, y) {
+	a3d.Vec2.call(this, x, y);
+};
+a3d.inherits(a3d.UV, a3d.Vec2);
 
-a3d.Vert = a3d.Vec3.extend({
-	  col: a3d.Black
-	
-	, init: function(x, y, z, col) {
-		this._super(x, y, z);
-		
-		if (col) this.col = (col instanceof a3d.Color) ? col : new a3d.Color(col);
-	}
-	, clone: function() {
-		return new a3d.Vert(this.x, this.y, this.z, this.col);
-	}
-});
+a3d.UV.prototype.clone = function() {
+	return new a3d.UV(this.x, this.y);
+};
+
+/**
+ * @constructor
+ * @extends {a3d.Vec3}
+ */
+a3d.Vert = function(x, y, z, col) {
+	a3d.Vec3.call(this, x, y, z);
+	this.col = (col) ? ((col instanceof a3d.Color) ? col : new a3d.Color(col)) : a3d.Black;
+};
+a3d.inherits(a3d.Vert, a3d.Vec3);
+
+a3d.Vert.prototype.clone = function() {
+	return new a3d.Vert(this.x, this.y, this.z, this.col);
+};
 
 /**
  * @constructor
@@ -90,7 +98,7 @@ a3d.Triangle.prototype.buildTexture = function() {
 
 	uvm._11 = d12x; uvm._12 = d12y;
 	uvm._21 = d13x; uvm._22 = d13y;
-
+	
 	iuvm.invm(uvm);
 	
 	// Build a 2nd set of matrices that are scaled for inverse-transforming the image
