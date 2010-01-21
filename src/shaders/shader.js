@@ -52,7 +52,7 @@ a3d.Shader = function(cfg) {
 };
 /** @static */
 a3d.Shader.get = function(name) {
-	return this.lib[name];
+	return a3d.Shader.lib[name];
 };
 
 /**

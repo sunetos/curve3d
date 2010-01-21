@@ -9,7 +9,8 @@
 	
 	<!-- Choose amongst: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS -->
 	<property name="compilation-level" value="ADVANCED_OPTIMIZATIONS" />
-	<property name="warning-level" value="QUIET" />
+	<!-- Choose amongst: QUIET, DEFAULT, VERBOSE -->
+	<property name="warning-level" value="DEFAULT" />
 	
 	<property name="A3D" value="${dist}/adamia3d.js" />
 	<property name="A3D-MIN" value="${dist}/adamia3d.min.js" />
@@ -86,8 +87,8 @@
 		<property name="OUT" value="${A3D-MIN}" />
 		
 		<echo message="Building ${OUT}" />
-		<exec input="${IN}" output="${OUT}.tmp" executable="java">
-            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_output_file=${OUT}.prop.map" />
+		<exec executable="java">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --js=${IN} --js_output_file=${OUT}.tmp --property_map_output_file=${OUT}.prop.map" />
         </exec>
 		<replaceregexp match="^([^:]+):([^:]+)" replace="\2:\1" flags="g" byline="true" file="${OUT}.prop.map" />
 		<replaceregexp match="^/[*]" replace="/** @preserve" flags="g" byline="true" file="${OUT}.tmp" />
@@ -104,8 +105,8 @@
 		<property name="OUT" value="${A3DMATH-MIN}" />
 		
 		<echo message="Building ${OUT}" />
-		<exec input="${IN}" output="${OUT}.tmp" executable="java">
-            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --property_map_output_file=${OUT}.prop.map" />
+		<exec executable="java">
+            <arg line="-jar ${closurePath} --warning_level=${warning-level} --compilation_level=${compilation-level} --js=${IN} --js_output_file=${OUT}.tmp --property_map_output_file=${OUT}.prop.map" />
         </exec>
 		<replaceregexp match="^([^:]+):([^:]+)" replace="\2:\1" flags="g" byline="true" file="${OUT}.prop.map" />
 		<replaceregexp match="^/[*]" replace="/** @preserve " flags="g" byline="true" file="${OUT}.tmp" />

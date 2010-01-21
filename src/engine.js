@@ -35,7 +35,7 @@ adamia3d = function() {
  * Represents a render viewport as well as a block-level page element.
  * 
  * @param {string} viewportId - the id of a DOM node that is in the body of the document and "ready."
- * @param {function} rendererClass - lets you choose the rendering pipeline. If you don't supply one,
+ * @param {object} rendererClass - lets you choose the rendering pipeline. If you don't supply one,
  * it will try to choose the best one for the current browser.
  * 
  * @constructor
@@ -187,10 +187,10 @@ a3d.Viewport.prototype.tick = function() {
 	this.scene.update(cam.invM, dt);				// update geometry
 	
 	// Skip render frames instead of queueing them up
-	if (dtMs > inter*1.5) {
+	//if (dtMs > inter*1.5) {
 		//a3d.trace('skipping a render frame');
 		//return;
-	}
+	//}
 	this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
 };
 

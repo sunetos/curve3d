@@ -60,8 +60,8 @@ a3d.padLeft = function(str, len, ch) {
 // From http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
 a3d.trim = function(str) {
 	var start = -1, end = str.length;
-	while (str.charCodeAt(--end) < 33);
-	while (str.charCodeAt(++start) < 33);
+	while (str.charCodeAt(--end) < 33) {;};
+	while (str.charCodeAt(++start) < 33) {;};
 	return str.slice(start, end + 1);
 };
 

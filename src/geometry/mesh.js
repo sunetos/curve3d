@@ -117,6 +117,9 @@ a3d.Triangle.prototype._render = function(r) {
 	r.drawTriangle(this.cm, this);
 };
 
+/**
+ * @constructor
+ */
 a3d.ScreenTriangle = function(tri) {
 	this.tri = tri;
 	
