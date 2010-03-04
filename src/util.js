@@ -1,13 +1,15 @@
-/*
+/**
  * Global helper functions go in here, like browser detection, ajax, event handlers.
  */
 
-// Based on http://www.thespanner.co.uk/2009/01/29/detecting-browsers-javascript-hacks/
-// Had to extend myself to support newer Chromes, and FF3.5 & FF3.6
+/**
+ *  Based on http://www.thespanner.co.uk/2009/01/29/detecting-browsers-javascript-hacks/
+ *  Had to extend myself to support newer Chromes, and FF3.5 & FF3.6
+ */
 //FF35=(/a/[-1]&&Object.getPrototypeOf)?true:false
 a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':/^function \(/.test([].sort)?'Op':'Unknown';
 
-// Standardized method of supplying options to constructors
+/** Standardized method of supplying options to constructors */
 a3d.setup = function(obj, cfg) {
 	for (k in cfg) {
 		if (obj[k] !== undefined) {
@@ -15,7 +17,7 @@ a3d.setup = function(obj, cfg) {
 		}
 	}
 };
-// Map through a virtual lookup table
+/** Map through a virtual lookup table */
 a3d.setupMap = function(obj, map, cfg) {
 	for (k in cfg) {
 		if (obj[k] !== undefined) {
@@ -24,7 +26,7 @@ a3d.setupMap = function(obj, map, cfg) {
 	}
 };
 
-// Super-simple event handler
+/** Super-simple event handler */
 a3d.on = function(node, type, handler) {
 	if (node.addEventListener) {
 		node.addEventListener(type, handler, false);
@@ -32,8 +34,13 @@ a3d.on = function(node, type, handler) {
 		node.attachEvent('on' + type, handler);
 	}
 };
-// Solve scope issues with "this" on event handlers, taken from:
-// http://stackoverflow.com/questions/183214/javascript-callback-scope
+/**
+ * Solve scope issues with "this" on event handlers, taken from:
+ * http://stackoverflow.com/questions/183214/javascript-callback-scope
+ * 
+ * @param {Object} scope
+ * @param {Object} fn
+ */  
 a3d.bind = function(scope, fn) {
 	return function () {
 		fn.apply(scope, arguments);
@@ -57,7 +64,12 @@ a3d.padLeft = function(str, len, ch) {
     return pad + str;
 }
 
-// From http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
+/**
+ * Super-efficient string trim, taken from:
+ * http://flesler.blogspot.com/2008/11/fast-trim-function-for-javascript.html
+ * 
+ * @param {Object} str - The string to trim
+ */
 a3d.trim = function(str) {
 	var start = -1, end = str.length;
 	while (str.charCodeAt(--end) < 33) {;};
@@ -65,6 +77,10 @@ a3d.trim = function(str) {
 	return str.slice(start, end + 1);
 };
 
+/**
+ * Log to a development console if available, else silently fail.
+ * This mainly exists to prevent JS errors in IE and non-firebugged FF.
+ */
 a3d.trace = function() {
 	if (typeof(console) != 'undefined') {
 		console.log.apply(console, arguments);
@@ -83,9 +99,16 @@ a3d.vecCmp = function(v1, v2) {
 	return v1.y - v2.y;
 }
 
-// Minimalist ajax data fetcher. Only intended for loading models.
-// Async is the only support mode, no intention of allowing synchronous in JS.
-// Built off of jQuery 1.3.2 source by deleting 90% of the ajax() function.
+/**
+ * Minimalist ajax data fetcher. Only intended for loading models.
+ * Async is the only support mode, no intention of allowing synchronous in JS.
+ * Built off of jQuery 1.3.2 source by deleting 90% of the ajax() function.
+ * 
+ * @param {Object} url
+ * @param {Object} success
+ * @param {Object} fail
+ * @param {Object} binary
+ */
 a3d.get = function(url, success, fail, binary) {
 	var xhr = window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
 	var contentType = 'text/plain';
@@ -143,6 +166,11 @@ a3d.get = function(url, success, fail, binary) {
 
 }
 
+/**
+ * Cross-browser method of disabling mouse selection on a DOM element.
+ * 
+ * @param {Object} node - A DOM element
+ */
 a3d.avoidSelect = function(node) {
 	var B = a3d.$B.substr(0, 2);
 	if (B == 'IE' || B == 'Op') {

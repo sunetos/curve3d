@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+
+	<title>Adamia 3D Timeline Tests</title>
+	
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
+	
+	<style type="text/css">
+		#output {
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+			var logNode = null;
+			var logText = '';
+			function log(text) {
+				if (!logNode) logNode = $('#output');
+				
+				logText += text.toString() + '\n';
+				logNode.text(logText);
+				
+				//console.log(text);
+			}
+			$(document).ready(function() {
+				log('Warning, leaving this page open for long will destroy your browser');
+				log('');
+				
+				var v = adamia3d.init();
+				var tlAll = v.timeline.create({frames: 8, callback: function(frame) {
+					log('all> frame: ' + frame + ' t: ' + tlAll.t);
+				}});
+				var tlInt = v.timeline.create({frames: 5, interval: 100, callback: function(frame) {
+					log('interval> frame: ' + frame + ' t: ' + tlInt.t + ' next: ' + tlInt.nextT);
+				}});
+				var tlList = v.timeline.create({intervals: [100, 500, 1000], callback: function(frame) {
+					log('list> frame: ' + frame + ' t: ' + tlList.t + ' next: ' + tlList.nextT)
+				}});
+				
+				a3d.trace(tlAll);
+				
+				v.play();
+			});
+	</script>
+</head>
+<body>
+	<pre id="output"></pre>
+
+</body>
+</html>

@@ -6,18 +6,18 @@ a3d.Render = {};
  * @enum {number}
  */
 a3d.Render.Projection = {
-	  ORTHO: 0
-	, PERSP: 1
+	  ORTHO: 1
+	, PERSP: 2
 };
 /**
  * Enum for render detail level (points, wireframe, solid color, textured).
  * @enum {number}
  */
 a3d.Render.Detail = {
-	  PTS: 0
-	, WIRE: 1
-	, COLOR: 2
-	, TXTUR: 4
+	  PTS: 1
+	, WIRE: 2
+	, COLOR: 4
+	, TXTUR: 8
 };
 
 /** 
@@ -27,7 +27,7 @@ a3d.Render.Detail = {
  */
 a3d.Camera = function(cfg) {
 	this.viewport = null;
-	this.projection = 0;
+	this.projection = a3d.Render.Projection.ORTHO;
 	this.detail = 4;
 	this.aspRatio = 1.0;
 	this.fov = 90.0;

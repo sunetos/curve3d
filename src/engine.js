@@ -51,6 +51,7 @@ a3d.Viewport = function(viewportId, rendererClass) {
 	this.halfH = 0;
 	this.scene = null;
 	this.tickers = [];
+	this.timeline = null;
 	this.interval = 1000.0/30.0;
 	this.intervalId = 0;
 	this.startT = 0;
@@ -63,12 +64,13 @@ a3d.Viewport = function(viewportId, rendererClass) {
 	this.id = viewportId;
 	this.node = document.getElementById(this.id);
 	this.tickers = [];
+	this.timeline = new a3d.TimelineManager(this);
 	
 	if (!rendererClass) rendererClass = this.getBestRenderer();
 	if (!rendererClass) return;
 	
 	this.camera = new a3d.Camera({viewport: this});
-	this.renderer = new rendererClass({viewport: this, camera: this.camera});
+	if (this.node) this.renderer = new rendererClass({viewport: this, camera: this.camera});
 	this.scene = new a3d.Scene();
 	this.scene.addChild(this.camera);
 	
@@ -85,8 +87,10 @@ a3d.Viewport = function(viewportId, rendererClass) {
 		a3d.on(window, 'blur', a3d.bind(this, pauseFunc));
 	}
 	
-	a3d.on(this.node, 'resize', this.resize);
-	this.resize();
+	if (this.node) {
+		a3d.on(this.node, 'resize', this.resize);
+		this.resize();
+	}
 };
 
 a3d.Viewport.prototype.resize = function() {
@@ -151,13 +155,13 @@ a3d.Viewport.prototype.unTick = function(ticker) {
 };
 	
 a3d.Viewport.prototype.tick = function() {
-	var dt = 0.0;
+	var dt = 0.0, dtMs = 0;
 	var inter = this.interval;
 	++this.frameCount;
 	
 	if (this.startT) {
 		var thisT = (new Date()).getTime();
-		var dtMs = thisT - this.lastT;
+		dtMs = thisT - this.lastT;
 		this.simT += inter;		// Watch for floating point error accumuluation here
 		
 		// Skip frames instead of queueing them up.
@@ -181,6 +185,9 @@ a3d.Viewport.prototype.tick = function() {
 		tk[i](dt);
 	}
 	
+	// Update animation timelines first
+	this.timeline.tick(dtMs);
+	
 	// TODO: This logic is flawed, and the camera will be a frame behind
 	var cam = this.camera;
 	//cam.update(dt);
@@ -191,7 +198,7 @@ a3d.Viewport.prototype.tick = function() {
 		//a3d.trace('skipping a render frame');
 		//return;
 	//}
-	this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
+	if (this.renderer) this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
 };
 
 /**

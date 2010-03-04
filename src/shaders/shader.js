@@ -31,9 +31,10 @@ a3d.$TexLib = new a3d.TextureLib();
  * @enum {number}
  */
 a3d.ShaderType = {
-	  WIRE: 0
-	, COLOR: 1
-	, TXTUR: 2
+	  WIRE: 1
+	, COLOR: 2
+	, TXTUR: 3
+	, SPRITE: 4
 };
 
 /**

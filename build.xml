@@ -42,12 +42,14 @@
 			<fileset file="src/math.js" />
 			<fileset file="src/util.js" />
 			<fileset file="src/engine.js" />
+			<fileset file="src/timeline.js" />
 			<fileset file="src/render/renderer.js" />
 			<fileset file="src/render/renderercanvas.js" />
 			<fileset file="src/render/renderercss3.js" />
 			<!-- <fileset file="src/render/renderersvg.js" /> -->
 			<fileset file="src/shaders/color.js" />
 			<fileset file="src/shaders/shader.js" />
+			<fileset file="src/shaders/spriteshader.js" />
 			<fileset file="src/geometry/primitives.js" />
 			<fileset file="src/geometry/mesh.js" />
 			<fileset file="src/loaders/bytearray.js" />
