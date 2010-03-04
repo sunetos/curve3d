@@ -137,13 +137,13 @@ a3d.Vec3.prototype.toString = function() {
 	return 'vec3: (' + this.x + ',' + this.y + ',' + this.z + ')';
 };
 
-a3d.X = new a3d.Vec3(1.0, 0.0, 0.0);
-a3d.Y = new a3d.Vec3(0.0, 1.0, 0.0);
-a3d.Z = new a3d.Vec3(0.0, 0.0, 1.0);
+/** @const */ a3d.X = new a3d.Vec3(1.0, 0.0, 0.0);
+/** @const */ a3d.Y = new a3d.Vec3(0.0, 1.0, 0.0);
+/** @const */ a3d.Z = new a3d.Vec3(0.0, 0.0, 1.0);
 
-a3d.NX = new a3d.Vec3(-1.0, 0.0, 0.0);
-a3d.NY = new a3d.Vec3(0.0, -1.0, 0.0);
-a3d.NZ = new a3d.Vec3(0.0, 0.0, -1.0);
+/** @const */ a3d.NX = new a3d.Vec3(-1.0, 0.0, 0.0);
+/** @const */ a3d.NY = new a3d.Vec3(0.0, -1.0, 0.0);
+/** @const */ a3d.NZ = new a3d.Vec3(0.0, 0.0, -1.0);
 
 /**
  * @param {number} x
@@ -301,6 +301,17 @@ a3d.Quat.prototype.mul = function(q2) {
 	this.z = w1*z2 + z1*w2 + x1*y2 - y1*x2;
 	this.w = w1*w2 - x1*x2 - y1*y2 - z1*z2;
 };
+
+/**
+ * @constructor
+ * @extends {a3d.MathClass}
+ */
+a3d.Rect = function(x, y, w, h) {
+	a3d.MathClass.call(this);
+	
+	this.x = x || 0; this.y = y || 0; this.w = w || 0; this.h = h || 0;
+};
+a3d.inherits(a3d.Rect, a3d.MathClass);
 
 /**
  * NOTE: I ran a pile of benchmarks comparing instance scratch variables to local scratch variables to no scratch variables.
@@ -917,6 +928,6 @@ a3d.Mat2.prototype.applyIeFilter = function(node) {
 };
 
 // Identity matrices
-a3d.M4 = new a3d.Mat4();
-a3d.M3 = new a3d.Mat3();
-a3d.M2 = new a3d.Mat2();
+/** @const */ a3d.M4 = new a3d.Mat4();
+/** @const */ a3d.M3 = new a3d.Mat3();
+/** @const */ a3d.M2 = new a3d.Mat2();
