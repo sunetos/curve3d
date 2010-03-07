@@ -10,7 +10,7 @@
 a3d.Point = function(x, y, z, col) {
 	this.col = a3d.Black;
 	
-	this._super();
+	a3d.SceneNode.call(this);
 	
 	if (col) this.col = (col instanceof a3d.Color) ? col : new a3d.Color(col);
 	

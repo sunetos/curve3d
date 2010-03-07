@@ -28,7 +28,7 @@ a3d.Render.Detail = {
 a3d.Camera = function(cfg) {
 	this.viewport = null;
 	this.projection = a3d.Render.Projection.ORTHO;
-	this.detail = 4;
+	this.detail = a3d.Render.Detail.TXTUR;
 	this.aspRatio = 1.0;
 	this.fov = 90.0;
 	this.nearZ = 0.01;
@@ -113,6 +113,7 @@ a3d.RendererBase = function(cfg) {
 	this.detail = 0;
 	this.z = 0;				// Track current z-index
 	this.stris = [];		// All polys to render this frame
+	this.sprites = [];		// All sprites to render this frame
 	this.vw = 0;
 	this.vh = 0;
 	
