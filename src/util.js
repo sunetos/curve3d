@@ -7,7 +7,7 @@
  *  Had to extend myself to support newer Chromes, and FF3.5 & FF3.6
  */
 //FF35=(/a/[-1]&&Object.getPrototypeOf)?true:false
-a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':/^function \(/.test([].sort)?'Op':'Unknown';
+a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':'object'==(typeof /./)?'Op':'Unknown';
 
 /** Standardized method of supplying options to constructors */
 a3d.setup = function(obj, cfg) {

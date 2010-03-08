@@ -46,6 +46,7 @@
 			<fileset file="src/render/renderer.js" />
 			<fileset file="src/render/renderercanvas.js" />
 			<fileset file="src/render/renderercss3.js" />
+			<fileset file="src/render/renderercss3hybrid.js" />
 			<!-- <fileset file="src/render/renderersvg.js" /> -->
 			<fileset file="src/shaders/color.js" />
 			<fileset file="src/shaders/shader.js" />

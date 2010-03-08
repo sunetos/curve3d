@@ -72,15 +72,18 @@
 		#control-panel select {
 			width: 110px;
 		}
-		#a3d-quality, #a3d-renderer {
+		#a3d-quality {
 			height: 40px;
+		}
+		#a3d-renderer {
+			height: 60px;
 		}
 	</style>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport', a3d.RendererCss3);
+				var v = adamia3d.init('viewport', a3d.RendererCss3Hybrid);
 				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 				
 				var mesh = null;
@@ -106,30 +109,34 @@
 				});
 				
 				$('#a3d-renderer').change(function() {
-					var renderName = $('#a3d-renderer :selected').val().substr(0, 3);
+					var renderName = $('#a3d-renderer :selected').val().substr(0, 5);
 					
 					v.pause();
 					$('#viewport').empty();
 					
-					if (renderName == 'Can') {
+					if (renderName == 'Canva') {
 						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
+					} else if (renderName == 'CSS3+') {
+						v.renderer = new a3d.RendererCss3Hybrid({viewport: v, camera: v.camera});
 					} else {
 						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
 					}
 					v.play();
 				});
 				
-				/*
+				
 				a3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
 					mesh = meshes[0];
 					mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
 					mesh.scaleBy(90, 90, 90);
 					meshContainer.addChild(mesh);
 					
+					//setTimeout(function() { mesh.debugUVs(); }, 250);
+					
 					if (v.paused) v.play();
 				});
-				*/
 				
+				/*
 				a3d.MeshLoader.load3DS('meshes/terrain/terrain1.3ds', function(meshes) {
 					var mesh = meshes[0];
 					mesh.scaleBy(2, -0.5, 2);
@@ -151,8 +158,9 @@
 					
 					if (v.paused) v.play();
 				});
+				*/
 				
-				$('#a3d-renderer').val('CSS3/IE');
+				$('#a3d-renderer').val('CSS3+Canvas');
 				$('#a3d-quality').val('Textured');
 				$('#a3d-mesh').val('Icosphere');
 				$('#a3d-mesh').change();
@@ -243,7 +251,8 @@
 			</div>
 			
 			<h4>Renderer:</h4>
-			<select id="a3d-renderer" name="a3d-renderer" size="2">
+			<select id="a3d-renderer" name="a3d-renderer" size="3">
+				<option>CSS3+Canvas</option>
 				<option>CSS3/IE</option>
 				<option>Canvas 2D</option>
 			</select>

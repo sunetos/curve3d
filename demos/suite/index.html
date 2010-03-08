@@ -67,15 +67,18 @@
 		#control-panel select {
 			width: 110px;
 		}
-		#a3d-quality, #a3d-renderer {
+		#a3d-quality {
 			height: 40px;
 		}
+		#a3d-renderer {
+			height: 60px;
+		}
 	</style>
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport', a3d.RendererCanvas2d);
+				var v = adamia3d.init('viewport', a3d.RendererCss3Hybrid);
 				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 				
 				var mesh = null;
@@ -105,8 +108,10 @@
 					v.pause();
 					$('#viewport').empty();
 					
-					if (renderName == 'Can') {
+					if (renderName == 'Canva') {
 						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
+					} else if (renderName == 'CSS3+') {
+						v.renderer = new a3d.RendererCss3Hybrid({viewport: v, camera: v.camera});
 					} else {
 						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
 					}
@@ -164,7 +169,7 @@
 					}
 				});
 				
-				$('#a3d-renderer').val('Canvas 2D');
+				$('#a3d-renderer').val('CSS3+Canvas');
 				$('#a3d-quality').val('Textured');
 				$('#a3d-mesh').val('Icosphere');
 				$('#a3d-mesh').change();
@@ -242,13 +247,14 @@
 			</div>
 			
 			<h4>Renderer:</h4>
-			<select id="a3d-renderer" name="a3d-renderer" size="2">
-				<option>Canvas 2D</option>
+			<select id="a3d-renderer" name="a3d-renderer" size="3">
+				<option>CSS3+Canvas</option>
 				<option>CSS3/IE</option>
+				<option>Canvas 2D</option>
 			</select>
 			
 			<h4>Model:</h4>
-			<select id="a3d-mesh" name="a3d-mesh" size="3">
+			<select id="a3d-mesh" name="a3d-mesh" size="4">
 				<option>Icosphere</option>
 				<option>Fish</option>
 				<option>Robot Dragon</option>

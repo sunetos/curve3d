@@ -31,7 +31,8 @@ a3d.RendererCss3 = function(cfg) {
 		case 'FF':	this.$B = 1; break;
 		case 'Sa':
 		case 'Ch':	this.$B = 2; break;
-		case 'IE':	this.$B = 3; break;
+		case 'Op':	this.$B = 3; break;
+		case 'IE':	this.$B = 4; break;
 		default:	this.$B = null; break;
 	}
 };
@@ -83,9 +84,11 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 		  , dir2x = sv2.x - center.x, dir2y = sv2.y - center.y
 		  , dir3x = sv3.x - center.x, dir3y = sv3.y - center.y;
 		
-		off1x = dir1x*0.1; off1y = dir1y*0.1;
-		off2x = dir2x*0.1; off2y = dir2y*0.1;
-		off3x = dir3x*0.1; off3y = dir3y*0.1;
+		var factor = 0.01;
+		if (this.$B == 2) factor = 0.1;
+		off1x = dir1x*factor; off1y = dir1y*factor;
+		off2x = dir2x*factor; off2y = dir2y*factor;
+		off3x = dir3x*factor; off3y = dir3y*factor;
 		
 		v1x += off1x; v2x += off2x; v3x += off3x;
 		v1y += off1y; v2y += off2y; v3y += off3y;
@@ -193,7 +196,20 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
-				} else if (this.$B == 3) { // IE
+				} else if (this.$B == 3) { // Opera
+					node.style.OTransformOrigin = imgNode.style.OTransformOrigin = 'top left';
+					imgNode.style.OTransform = m.toCssString();
+					
+					rotNode.style.OTransformOrigin = unrotNode.style.OTransformOrigin = 'top left';
+					rotNode.style.OTransform = 'rotate(' + rotRad + 'rad)';
+					unrotNode.style.OTransform = 'rotate(-' + rotRad + 'rad)';
+					
+					rotNode.style.left = '' + rotOff + 'px';
+					offsetNode.style.left = '-' + rotOff + 'px';
+					
+					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+				} else if (this.$B == 4) { // IE
 					m.applyIeFilter(imgNode);
 					
 					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
@@ -274,7 +290,12 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				
 				node.style.left = '' + v1x + 'px';
 				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 3) { // IE
+			} else if (this.$B == 3) { // Opera
+				node.style.OTransform = aff2d.toCssString();
+				
+				node.style.left = '' + v1x + 'px';
+				node.style.top = '' + v1y + 'px';
+			} else if (this.$B == 4) { // IE
 				aff2d.applyIeFilter(node);
 				
 				// Account for the fact that IE's "auto expand" matrix offsets the origin.
@@ -360,7 +381,19 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
-				} else if (this.$B == 3) { // IE
+				} else if (this.$B == 3) { // Opera
+					node.style.OTransformOrigin = imgNode.style.OTransformOrigin = 'top left';
+					
+					rotNode.style.OTransformOrigin = unrotNode.style.OTransformOrigin = 'top left';
+					rotNode.style.OTransform = 'rotate(' + rotRad + 'rad)';
+					unrotNode.style.OTransform = 'rotate(-' + rotRad + 'rad)';
+					
+					rotNode.style.left = '' + rotOff + 'px';
+					offsetNode.style.left = '-' + rotOff + 'px';
+					
+					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
+					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
+				} else if (this.$B == 4) { // IE
 					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
 					
@@ -419,7 +452,12 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				
 				node.style.left = '' + v1x + 'px';
 				node.style.top = '' + v1y + 'px';
-			} else if (this.$B == 3) { // IE
+			} else if (this.$B == 3) { // Opera
+				node.style.OTransform = aff2d.toCssString();
+				
+				node.style.left = '' + v1x + 'px';
+				node.style.top = '' + v1y + 'px';
+			} else if (this.$B == 4) { // IE
 				aff2d.applyIeFilter(node);
 				
 				// Account for the fact that IE's "auto expand" matrix offsets the origin.
