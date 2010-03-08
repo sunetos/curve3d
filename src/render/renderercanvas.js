@@ -268,6 +268,8 @@ a3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 	}
 };
 
+a3d.RendererCanvas2d.prototype.drawSprites = function(sprites) {
+};
 
 /**
  * @constructor

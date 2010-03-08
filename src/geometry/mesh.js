@@ -122,6 +122,7 @@ a3d.Triangle.prototype._render = function(r) {
  */
 a3d.ScreenTriangle = function(tri) {
 	this.tri = tri;
+	this.geom = a3d.Render.Geometry.POLY;
 	
 	this.v1 = new a3d.Vert(); this.v2 = new a3d.Vert(); this.v3 = new a3d.Vert();
 	this.center = new a3d.Vert();
@@ -193,7 +194,6 @@ a3d.Mesh.prototype.moveToCenter = function() {
 				//this.addChild(tri);
 			}
 			avg.div(trisl*3.0);
-			//a3d.trace(avg);
 			this.m.moveToV(avg);
 			avg.div(3.0);
 			
@@ -208,14 +208,14 @@ a3d.Mesh.prototype.moveToCenter = function() {
 	}
 };
 
-a3d.Mesh.prototype._render = function(r) {
+a3d.Mesh.prototype._collect = function(r) {
 	if (!this.data) return;
 	
 	r.camera.projectTris(this.cm, this.stris);
 	
 	// Super fast in-place concat, taken from
 	// http://ejohn.org/blog/javascript-array-remove/
-	r.stris.push.apply(r.stris, this.stris);
+	r.objs.push.apply(r.objs, this.stris);
 };
 
 a3d.Mesh.prototype.remove = function(r) {

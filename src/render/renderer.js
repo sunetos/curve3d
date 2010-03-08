@@ -19,6 +19,15 @@ a3d.Render.Detail = {
 	, COLOR: 4
 	, TXTUR: 8
 };
+/**
+ * Enum for render element required (polygons, sprites).
+ * @enum {number}
+ */
+a3d.Render.Geometry = {
+	  NONE: 1
+	, POLY: 2
+	, SPRITE: 4
+};
 
 /** 
  * A special scenegraph Node that represents a camera for a viewport.
@@ -32,7 +41,7 @@ a3d.Camera = function(cfg) {
 	this.aspRatio = 1.0;
 	this.fov = 90.0;
 	this.nearZ = 0.01;
-	this.farZ = 100.0;
+	this.farZ = 10000.0;
 	
 	this.vw = 0;
 	this.vh = 0;
@@ -112,8 +121,7 @@ a3d.RendererBase = function(cfg) {
 	this.camera = null;
 	this.detail = 0;
 	this.z = 0;				// Track current z-index
-	this.stris = [];		// All polys to render this frame
-	this.sprites = [];		// All sprites to render this frame
+	this.objs = [];			// All renderable objects to draw this frame
 	this.vw = 0;
 	this.vh = 0;
 	
@@ -142,31 +150,59 @@ a3d.RendererBase.prototype.render = function(scene) {
 	this._flip();
 };
 
-a3d.RendererBase.prototype.remove = function(stris) {;};
+a3d.RendererBase.prototype.remove = function(objs) {;};
 
 a3d.RendererBase.prototype._render = function(scene) {
 	this.z = 0;
-	this.stris.length = 0;
+	var objs = this.objs;
+	objs.length = 0;
 	
-	scene.render(this);
+	scene.collect(this);
 	this.zSort();
-	this.drawTriangles(this.stris);
+	
+	// Render different object types in state-sorted batches.
+	//a3d.trace('------ start -------');
+	
+	objs.push({geom: -1});	// sentinel for simpler loop logic
+	var gPoly = a3d.Render.Geometry.POLY, gSprite = a3d.Render.Geometry.SPRITE;
+	var start = 0, geom = -1;
+	var objsl = objs.length, last = objs.length - 1;
+	for (var i = 0; i < objsl; ++i) {
+		var obj = objs[i];
+		var g = obj.geom;
+		
+		// State switch, render what we have so far
+		if (g != geom || i == last) {
+			if (i > start) {
+				var batch = objs.slice(start, i);
+				if (geom == gPoly) {
+					//a3d.trace('poly');
+					this.drawTriangles(batch);
+				} else if (geom == gSprite) {
+					//a3d.trace('sprite');
+					this.drawSprites(batch);
+				}
+			}
+			start = i;
+			geom = g;
+		}
+	}
 };
 
 // These functions really should be pure virtual
 a3d.RendererBase.prototype._clear = function() {a3d.trace('_clear');};
 a3d.RendererBase.prototype._flip = function() {a3d.trace(' _flip');};
 
-a3d.RendererBase.prototype.triCmpZaxis = function(tri1, tri2) {
-	return (tri2.center.z - tri1.center.z);	// z-axis sort
+a3d.RendererBase.prototype.cmpZaxis = function(obj1, obj2) {
+	return (obj2.center.z - obj1.center.z);	// z-axis sort
 };
 
-a3d.RendererBase.prototype.triCmpCamDist = function(tri1, tri2) {
+a3d.RendererBase.prototype.cmpCamDist = function(tri1, tri2) {
 	// This works because camCenter is in camera space
 	var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
 	return tri2z - tri1z;
 };
 
 a3d.RendererBase.prototype.zSort = function() {
-	this.stris.sort(this.triCmpZaxis);
+	this.objs.sort(this.cmpZaxis);
 };

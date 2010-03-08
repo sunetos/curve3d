@@ -21,7 +21,7 @@ a3d.Point = function(x, y, z, col) {
 };
 a3d.inherits(a3d.Point, a3d.SceneNode);
 	
-a3d.Point.prototype._render = function(r) {
+a3d.Point.prototype._collect = function(r) {
 	r.drawPoint(this.cm, this.col);
 };
 

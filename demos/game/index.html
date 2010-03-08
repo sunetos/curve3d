@@ -4,22 +4,27 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
 
-	<title>Adamia 3D Demo Suite</title>
+	<title>Adamia 3D Game Demo</title>
 	
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
 	
 	<style type="text/css">
 		#viewport {
-			width: 400px;
-			height: 300px;
+			width: 100%;
+			height: 100%;
 			position: absolute;
 			top:0;
 			left:0;
+			overflow: hidden;
+			z-index: 1;
 		}
-		#content {
-			width: 400px;
-			height: 300px;
-			color: #999999;
+		#background {
+			position: absolute;
+			top:0;
+			left:0;
+			width: 100%;
+			height: 100%;
+			z-index: 0;
 		}
 		
 		#control-panel {
@@ -75,19 +80,20 @@
 	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport', a3d.RendererCanvas2d);
+				var v = adamia3d.init('viewport', a3d.RendererCss3);
 				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 				
 				var mesh = null;
 				var meshName = '';
-				var autoRot = true;
 				var camNode = new a3d.Node();
+				var world = new a3d.SceneNode();
 				var meshContainer = new a3d.SceneNode();
 				meshContainer.moveTo(0, 0, 250);
 				
 				v.scene.addChild(camNode);
 				camNode.addChild(v.camera);
-				v.scene.addChild(meshContainer);
+				world.addChild(meshContainer);
+				v.scene.addChild(world);
 				
 				$('#a3d-quality').change(function() {
 					var quality = $('#a3d-quality :selected').val();
@@ -113,65 +119,56 @@
 					v.play();
 				});
 				
-				$('#a3d-mesh').change(function() {
-					var selMesh = $('#a3d-mesh :selected').val();
-					if (meshName == selMesh) return;
+				/*
+				a3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
+					mesh = meshes[0];
+					mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
+					mesh.scaleBy(90, 90, 90);
+					meshContainer.addChild(mesh);
 					
-					if (mesh) {
-						meshContainer.removeChild(mesh);
-						mesh.remove(v.renderer);
-					}
+					if (v.paused) v.play();
+				});
+				*/
+				
+				a3d.MeshLoader.load3DS('meshes/terrain/terrain1.3ds', function(meshes) {
+					var mesh = meshes[0];
+					mesh.scaleBy(2, -0.5, 2);
+					mesh.moveTo(0, 350, 0);
+					mesh.rotX(Math.PI*0.5);
+					world.addChild(mesh);
 					
-					v.pause();
-					meshName = selMesh;
-					if (meshName == 'Fish') {
-						a3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
-							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../fish/piranhaSkin.jpg');
-							mesh.scaleBy(150, 150, 150);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
-						});
-					} else if (meshName == 'Icosphere') {
-						a3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
-							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
-							mesh.scaleBy(90, 90, 90);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
-						});
-					} else if (meshName == 'Robot Dragon') {
-						a3d.MeshLoader.loadOBJ('../robot-dragon/robot-dragon-fixed.obj', function(meshes) {
-							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../robot-dragon/robot-dragon-texture.png');
-							mesh.scaleBy(20, 20, 20);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
-						});
-					} else if (meshName == 'Guitar') {
-						a3d.MeshLoader.load3DS('meshes/guitar/cLarBodM.3ds', function(meshes) {
-							mesh = meshes[0];
-							mesh.scaleBy(4, 4, 4);
-							mesh.rotX(Math.PI*1.4);
-							mesh.moveBy(0, -10, 0);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
-						});
-					}
+					var sprite = new a3d.Sprite();
+					sprite.moveTo(0, 300, 0);
+					sprite.scaleBy(50, 50, 50);
+					sprite.shader.addTextureUrl('textures/poison_spore.gif');
+					world.addChild(sprite);
+					
+					sprite = new a3d.Sprite();
+					sprite.moveTo(100, 300, 0);
+					sprite.scaleBy(50, 50, 50);
+					sprite.shader.addTextureUrl('textures/poison_toad.gif');
+					world.addChild(sprite);
+					
+					if (v.paused) v.play();
 				});
 				
-				$('#a3d-renderer').val('Canvas 2D');
+				$('#a3d-renderer').val('CSS3/IE');
 				$('#a3d-quality').val('Textured');
 				$('#a3d-mesh').val('Icosphere');
 				$('#a3d-mesh').change();
 				
+				world.rotX(Math.PI*0.04);
+				
+				var keys = {};
+				var W = 87, A = 65, S = 83, D = 68;
+				
 				v.onTick(function(dt) {
-					if (mesh && autoRot) {
+					if (mesh) {
 						meshContainer.rotY(1.5*dt);
+					}
+					
+					if (keys[W]) {
+						world.moveBy(5*dt, 0, 0);
 					}
 					
 					// Demonstrate camera parenting under a scene node
@@ -201,24 +198,32 @@
 					}
 				}, 50);
 				
-				// added by JNL 3/4/09
 				var mouseX = 0;
 				var mouseY = 0;
 				var rotAmt = 0.02;
+				var mouseDown = false;
 				$('#viewport').mousedown(function() {
-					autoRot = false;
+					mouseDown = true;
 				}).mouseup(function() {
-					autoRot = true;
+					mouseDown = false;
 				}).mousemove(function(e) {
+					if (!mouseDown) return;
+					
 					if (mouseX == 0) mouseX = e.clientX;
 					if (mouseY == 0) mouseY = e.clientY;
-					if (!autoRot) {
-						if (mesh) mesh.rotY(-rotAmt * (e.clientX - mouseX));
-						if (mesh) mesh.rotZ(-rotAmt * (e.clientY - mouseY));
-						mouseX = e.clientX;
-						mouseY = e.clientY;
+					if (mouseDown) {
+						//camNode.rotY(rotAmt * (e.clientX - mouseX));
+						//camNode.rotZ(rotAmt * (e.clientY - mouseY));
 					}
-				})
+					mouseX = e.clientX;
+					mouseY = e.clientY;
+				});
+				
+				$(document).keydown(function(e) {
+					keys[parseInt(e.keyCode)] = true;
+				}).keyup(function(e) {
+					delete keys[e.keyCode];
+				});
 			}
 			
 			$(document).ready(do3d);
@@ -226,11 +231,7 @@
 </head>
 <body>
 	<div id="viewport"></div>
-	
-	<div id="content">
-		<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-		<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-	</div>
+	<img id="background" src="textures/sky.jpg" />
 	
 	<div id="control-panel">
 		<h3>adamia3d options</h3>
@@ -243,16 +244,8 @@
 			
 			<h4>Renderer:</h4>
 			<select id="a3d-renderer" name="a3d-renderer" size="2">
-				<option>Canvas 2D</option>
 				<option>CSS3/IE</option>
-			</select>
-			
-			<h4>Model:</h4>
-			<select id="a3d-mesh" name="a3d-mesh" size="3">
-				<option>Icosphere</option>
-				<option>Fish</option>
-				<option>Robot Dragon</option>
-				<option>Guitar</option>
+				<option>Canvas 2D</option>
 			</select>
 			
 			<h4>Quality:</h4>

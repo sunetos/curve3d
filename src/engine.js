@@ -359,6 +359,7 @@ a3d.Node.prototype.remove = function() {;};
  */
 a3d.SceneNode = function(cfg) {
 	this.shader = null;
+	this.geom = a3d.Render.Geometry.NONE;
 	
 	a3d.Node.call(this, cfg);
 	
@@ -368,19 +369,19 @@ a3d.SceneNode = function(cfg) {
 };
 a3d.inherits(a3d.SceneNode, a3d.Node);
 	
-a3d.SceneNode.prototype.render = function(r) {
+a3d.SceneNode.prototype.collect = function(r) {
 	var chs = this.children; var chl = chs.length;
 	for (var i = 0; i < chl; ++i) {
 		var ch = chs[i];
 		
-		var render = ch.render;
-		if (render) ch.render(r);
+		var collect = ch.collect;
+		if (collect) ch.collect(r);
 	}
 	
-	this._render(r);
+	this._collect(r);
 };
 
-a3d.SceneNode.prototype._render = function(r) {;};
+a3d.SceneNode.prototype._collect = function(r) {;};
 
 /**
  * A basic scenegraph of a3d.SceneNodes.
@@ -404,7 +405,7 @@ a3d.Scene.prototype.update = function(baseM, dt) {
 	this.root.update(baseM, dt);
 };
 
-a3d.Scene.prototype.render = function(r) {
-	this.root.render(r);
+a3d.Scene.prototype.collect = function(r) {
+	this.root.collect(r);
 };
 

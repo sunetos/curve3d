@@ -145,6 +145,8 @@ a3d.Vec3.prototype.toString = function() {
 /** @const */ a3d.NY = new a3d.Vec3(0.0, -1.0, 0.0);
 /** @const */ a3d.NZ = new a3d.Vec3(0.0, 0.0, -1.0);
 
+/** @const */ a3d.Vec3.ZERO = new a3d.Vec3();
+
 /**
  * @param {number} x
  * @param {number} y
@@ -485,6 +487,16 @@ a3d.Mat4.prototype.scalev = function(v) {
 	this._11 *= sx; this._12 *= sx; this._13 *= sx;
 	this._21 *= sy; this._22 *= sy; this._23 *= sy;
 	this._31 *= sz; this._32 *= sz; this._33 *= sz;
+};
+// NOTE: The following functions are very expensive, don't use them if you can help it
+a3d.Mat4.prototype.scaleX = function() {
+	return this.sqrt(this._11*this._11 + this._12*this._12 + this._13*this._13);
+};
+a3d.Mat4.prototype.scaleY = function() {
+	return this.sqrt(this._21*this._21 + this._22*this._22 + this._23*this._23);
+};
+a3d.Mat4.prototype.scaleZ = function() {
+	return this.sqrt(this._31*this._31 + this._32*this._32 + this._33*this._33);
 };
 
 a3d.Mat4.prototype.moveTo = function(x, y, z) {

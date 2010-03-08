@@ -440,3 +440,73 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 		node.style.zIndex = this.z++;
 	}
 };
+
+a3d.RendererCss3.prototype.drawSprites = function(sprites) {
+	var texturing = (this.camera.detail == a3d.Render.Detail.TXTUR);
+	if (!texturing) return;
+	var persp = (this.camera.projection == a3d.Render.Projection.PERSP);
+	
+	var v = this.viewport;
+	var abs = Math.abs;
+	var nearZ = this.camera.nearZ, farZ = this.camera.farZ;
+	
+	var spritesl = sprites.length;
+	for (var i = 0; i < spritesl; ++i) {
+		var sprite = sprites[i];
+		
+		var pos = sprite.center, scale = sprite.scale;	// TODO: Need to get the scale from the concatenated matrix instead
+		//a3d.trace(pos.z);
+		if (pos.z >= farZ || pos.z <= nearZ) {			// near & far-plane clipping
+			if (sprite.node && sprite.node.style.display != 'none') {
+				sprite.node.style.display = 'none';
+			}
+			continue;
+		}
+		
+		var shader = sprite.shader;
+		var imgs = shader.textures;
+		if (!imgs.length) continue;
+		var img = imgs[0];
+		
+		var node = sprite.node, imgNode = sprite.imgNode;
+		if (!node) {
+			sprite.node = node = document.createElement('div');
+			sprite.imgNode = imgNode = img.cloneNode(false);
+			
+			node.className = 'a3d-sprite';
+			node.style.position = 'absolute';
+			node.style.overflow = 'hidden';
+			//node.style.opacity = '0.8';
+			
+			imgNode.className = 'a3d-sprite-img';
+			imgNode.style.display = 'block';
+			imgNode.style.position = 'absolute';
+			imgNode.style.left = '0';
+			imgNode.style.top = '0';
+			node.appendChild(imgNode);
+			
+			a3d.avoidSelect(node);
+			v.node.appendChild(node);
+		}
+		
+		if (node.style.display != 'block') {
+			node.style.display = 'block';
+		}
+		
+		var zScale = 1.0;
+		if (persp) {
+			zScale = (farZ - pos.z)/farZ;
+		}
+		var mScaleX = 1.0, mScaleY = 1.0;
+		// TODO: Find a way to use the concatenated matrix's scale without a sqrt() call (in scaleX())
+		var mScaleX = sprite.cm.scaleX(), mScaleY = sprite.cm.scaleY();
+		var w = mScaleX*zScale, h = mScaleY*zScale;
+		
+		node.style.left = '' + pos.x - w*0.5 + 'px';
+		node.style.top = '' + pos.y - h*0.5 + 'px';
+		node.style.width = imgNode.style.width = '' + w + 'px';
+		node.style.height = imgNode.style.height = '' + h + 'px';
+		
+		node.style.zIndex = this.z++;
+	}
+};

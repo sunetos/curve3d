@@ -52,6 +52,7 @@
 			<fileset file="src/shaders/spriteshader.js" />
 			<fileset file="src/geometry/primitives.js" />
 			<fileset file="src/geometry/mesh.js" />
+			<fileset file="src/geometry/sprite.js" />
 			<fileset file="src/loaders/bytearray.js" />
 			<fileset file="src/loaders/loader.js" />
 			<fileset file="src/loaders/loader3ds.js" />
