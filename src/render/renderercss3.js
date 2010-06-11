@@ -29,9 +29,9 @@ a3d.RendererCss3 = function(cfg) {
 	
 	switch (a3d.$B.substr(0, 2)) {
 		case 'FF':	this.$B = 1; break;
-		case 'Sa':
-		case 'Ch':	this.$B = 2; break;
-		case 'Op':	this.$B = 3; break;
+		case 'SA':
+		case 'CH':	this.$B = 2; break;
+		case 'OP':	this.$B = 3; break;
 		case 'IE':	this.$B = 4; break;
 		default:	this.$B = null; break;
 	}
@@ -116,10 +116,10 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 			
 			// Ensure existence of the proxy DOM object
 			var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
-			if (!node || !imgNode || imgNode.tagName != 'IMG') {
+			if (!node || !imgNode || imgNode.tagName != 'IMG' || !node.parentNode || !imgNode.parentNode) {
 				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
-				if (imgNode) imgNode.parentNode.removeChild(imgNode);
+				if (node && node.parentNode) node.parentNode.removeChild(node);
+				if (imgNode && imgNode.parentNode) imgNode.parentNode.removeChild(imgNode);
 				
 				var triFrag = this.triFrag.cloneNode(true);
 				stri.node = node = v.node.appendChild(triFrag.firstChild);

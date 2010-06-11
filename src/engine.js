@@ -105,23 +105,25 @@ a3d.Viewport.prototype.resize = function() {
 	
 // Figure out the current browser and choose the fastest renderer
 a3d.Viewport.prototype.getBestRenderer = function() {
+	//console.log(a3d.$B);
 	switch (a3d.$B) {
 		case 'FF':
 		case 'FF2':
 		case 'FF3':
-		case 'Op':
+		case 'OP':
 			return a3d.RendererCanvas2d; break;
-		case 'FF35':
-		case 'FF36':
+		case 'FF3.5':
+		case 'FF3.6':
 			//return a3d.RendererSVG; break;
 			//return a3d.RendererCanvas2dBlit; break;
-			return a3d.RendererCanvas2d; break;
+			return a3d.RendererCss3Hybrid; break;
 			//return a3d.RendererCss3; break;
 		
-		case 'Saf':
+		case 'SA':
 			return a3d.RendererCanvas2d; break;
-		case 'Chr':
-		case 'IE':
+		case 'CH':
+		case 'IE8':
+		case 'IE9':
 			return a3d.RendererCss3; break;
 	}
 	return null;

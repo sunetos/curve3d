@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+	<meta http-equiv="X-UA-Compatible" content="IE=9">
 
 	<title>Adamia 3D Demo Suite</title>
 	
@@ -78,7 +78,7 @@
 	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport', a3d.RendererCss3Hybrid);
+				var v = adamia3d.init('viewport');
 				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
 				
 				var mesh = null;
@@ -102,8 +102,15 @@
 					}
 				});
 				
+				// Set the current renderer in the UI based on the one chosen by the engine
+				var rendererNames = [];
+				$('#a3d-renderer').children('option').each(function(i,v) { rendererNames.push($(v).text()); });
+				if (v.renderer instanceof a3d.RendererCss3Hybrid)	$('#a3d-renderer').val(rendererNames[0]);
+				if (v.renderer instanceof a3d.RendererCss3)			$('#a3d-renderer').val(rendererNames[1]);
+				if (v.renderer instanceof a3d.RendererCanvas2d)		$('#a3d-renderer').val(rendererNames[2]);
+				
 				$('#a3d-renderer').change(function() {
-					var renderName = $('#a3d-renderer :selected').val().substr(0, 3);
+					var renderName = $('#a3d-renderer :selected').val().substr(0, 5);
 					
 					v.pause();
 					$('#viewport').empty();
@@ -115,6 +122,7 @@
 					} else {
 						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
 					}
+					v.resize();
 					v.play();
 				});
 				
@@ -169,7 +177,7 @@
 					}
 				});
 				
-				$('#a3d-renderer').val('CSS3+Canvas');
+				//$('#a3d-renderer').val('CSS3+Canvas');
 				$('#a3d-quality').val('Textured');
 				$('#a3d-mesh').val('Icosphere');
 				$('#a3d-mesh').change();
@@ -223,7 +231,9 @@
 						mouseX = e.clientX;
 						mouseY = e.clientY;
 					}
-				})
+				});
+				
+				v.play();
 			}
 			
 			$(document).ready(do3d);

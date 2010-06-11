@@ -4,10 +4,15 @@
 
 /**
  *  Based on http://www.thespanner.co.uk/2009/01/29/detecting-browsers-javascript-hacks/
- *  Had to extend myself to support newer Chromes, and FF3.5 & FF3.6
+ *  Had to extend myself to support newer Chromes, and FF3.5 & FF3.6, and IE9
  */
 //FF35=(/a/[-1]&&Object.getPrototypeOf)?true:false
-a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':'object'==(typeof /./)?'Op':'Unknown';
+//a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':'object'==(typeof /./)?'Op':'Unknown';
+
+// Based on http://www.quirksmode.org/js/detect.html
+var BrowserDetect={init:function(){this.browser=this.searchString(this.dataBrowser)||"An unknown browser";this.version=this.searchVersion(navigator.userAgent)||this.searchVersion(navigator.appVersion)||"an unknown version";this.OS=this.searchString(this.dataOS)||"an unknown OS"},searchString:function(b){for(var a=0;a<b.length;a++){var c=b[a].string,d=b[a].prop;this.versionSearchString=b[a].versionSearch||b[a].identity;if(c){if(c.indexOf(b[a].subString)!=-1)return b[a].identity}else if(d)return b[a].identity}}, searchVersion:function(b){var a=b.indexOf(this.versionSearchString);if(a!=-1)return parseFloat(b.substring(a+this.versionSearchString.length+1))},dataBrowser:[{string:navigator.userAgent,subString:"Chrome",identity:"Chrome"},{string:navigator.userAgent,subString:"OmniWeb",versionSearch:"OmniWeb/",identity:"OmniWeb"},{string:navigator.vendor,subString:"Apple",identity:"Safari",versionSearch:"Version"},{prop:window.opera,identity:"Opera"},{string:navigator.vendor,subString:"iCab",identity:"iCab"},{string:navigator.vendor, subString:"KDE",identity:"Konqueror"},{string:navigator.userAgent,subString:"Firefox",identity:"Firefox"},{string:navigator.vendor,subString:"Camino",identity:"Camino"},{string:navigator.userAgent,subString:"Netscape",identity:"Netscape"},{string:navigator.userAgent,subString:"MSIE",identity:"Explorer",versionSearch:"MSIE"},{string:navigator.userAgent,subString:"Gecko",identity:"Mozilla",versionSearch:"rv"},{string:navigator.userAgent,subString:"Mozilla",identity:"Netscape",versionSearch:"Mozilla"}], dataOS:[{string:navigator.platform,subString:"Win",identity:"Windows"},{string:navigator.platform,subString:"Mac",identity:"Mac"},{string:navigator.userAgent,subString:"iPhone",identity:"iPhone/iPod"},{string:navigator.platform,subString:"Linux",identity:"Linux"}]};BrowserDetect.init();
+var browserMap={Explorer:"IE"+BrowserDetect.version,Opera:"OP",Firefox:"FF"+BrowserDetect.version,Chrome:"CH",Safari:"SA"};
+a3d.$B = browserMap[BrowserDetect.browser];
 
 /** Standardized method of supplying options to constructors */
 a3d.setup = function(obj, cfg) {

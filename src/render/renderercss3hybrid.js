@@ -16,9 +16,9 @@ a3d.RendererCss3Hybrid = function(cfg) {
 	
 	switch (a3d.$B.substr(0, 2)) {
 		case 'FF':	this.$B = 1; break;
-		case 'Sa':
-		case 'Ch':	this.$B = 2; break;
-		case 'Op':	this.$B = 3; break;
+		case 'SA':
+		case 'CH':	this.$B = 2; break;
+		case 'OP':	this.$B = 3; break;
 		case 'IE':	this.$B = 4; break;
 		default:	this.$B = null; break;
 	}
@@ -104,9 +104,9 @@ a3d.RendererCss3Hybrid.prototype.drawTriangles = function(stris) {
 			
 			// Ensure existence of the proxy DOM object
 			var node = stri.node;
-			if (!node || node.tagName != 'CANVAS') {
+			if (!node || !node.parentNode || node.tagName != 'CANVAS') {
 				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
+				if (node && node.parentNode) node.parentNode.removeChild(node);
 				//if (imgNode) imgNode.parentNode.removeChild(imgNode);
 				
 				// Save memory by using as small a triangle as possible
