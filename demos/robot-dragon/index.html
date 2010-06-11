@@ -19,22 +19,22 @@
 	}
 	</style>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/adamia3d.js" type="text/javascript" charset="utf-8"></script>
-	<!--<script src="/adamia/js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
-	<script src="/adamia/js/adamia3d.js" type="text/javascript" charset="utf-8"></script>-->
+	<script src="../../js/curve3d-math.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/curve3d.js" type="text/javascript" charset="utf-8"></script>
+	<!--<script src="/adamia/js/curve3d-math.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/adamia/js/curve3d.js" type="text/javascript" charset="utf-8"></script>-->
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport');
-				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
+				var v = curve3d.init('viewport');
+				var pauseBtn = $('#control-panel').find('input[name=c3d-pause]');
 				
 				var mesh;
 				var autoRot = true;
-				var camNode = new a3d.Node();
+				var camNode = new c3d.Node();
 				v.scene.addChild(camNode);
 				camNode.addChild(v.camera);
 				
-				a3d.MeshLoader.loadOBJ('robot-dragon-fixed.obj', function(meshes) {
+				c3d.MeshLoader.loadOBJ('robot-dragon-fixed.obj', function(meshes) {
 					mesh = meshes[0];
 					mesh.shader.addTextureUrl('robot-dragon-texture.png');
 					mesh.scaleBy(40, 40, 40);
@@ -51,10 +51,10 @@
 					//camNode.moveBy(0, 0.5, 0);
 				});
 				
-				$('#render-options').find('input[name=a3d-projection]').click(function() {
+				$('#render-options').find('input[name=c3d-projection]').click(function() {
 					var proj = $(this).val();
 					
-					v.camera.projection = (proj == 'persp') ? a3d.Render.Projection.PERSP : a3d.Render.Projection.ORTHO;
+					v.camera.projection = (proj == 'persp') ? c3d.Render.Projection.PERSP : c3d.Render.Projection.ORTHO;
 					v.resize();
 				});
 				
@@ -106,11 +106,11 @@
 	</div>
 	
 	<div id="render-options">
-		<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
-		<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+		<input type="radio" name="c3d-projection" value="ortho" checked /> Orthographic<br/><br />
+		<input type="radio" name="c3d-projection" value="persp" /> Perspective<br/>
 	</div>
 	<div id="control-panel">
-		<input type="button" name="a3d-pause" value="Pause" />
+		<input type="button" name="c3d-pause" value="Pause" />
 	</div>
 	<script type="text/javascript">
 			do3d();

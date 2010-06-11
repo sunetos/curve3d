@@ -15,7 +15,7 @@
 		}
 	</style>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/curve3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			var logNode = null;
 			var logText = '';
@@ -31,7 +31,7 @@
 				log('Warning, leaving this page open for long will destroy your browser');
 				log('');
 				
-				var v = adamia3d.init();
+				var v = curve3d.init();
 				var tlAll = v.timeline.create({frames: 8, callback: function(frame) {
 					log('all> frame: ' + frame + ' t: ' + tlAll.t);
 				}});
@@ -42,7 +42,7 @@
 					log('list> frame: ' + frame + ' t: ' + tlList.t + ' next: ' + tlList.nextT)
 				}});
 				
-				a3d.trace(tlAll);
+				c3d.trace(tlAll);
 				
 				v.play();
 			});

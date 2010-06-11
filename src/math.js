@@ -5,7 +5,7 @@
  * 
  * @constructor
  */
-a3d.MathClass = function() {
+c3d.MathClass = function() {
 	this.abs = Math.abs;
 	this.sqrt = Math.sqrt;
 	this.cos = Math.cos;
@@ -26,61 +26,61 @@ a3d.MathClass = function() {
  * @param {number} y
  * @param {number} z
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Vec3 = function(x, y, z) {
-	a3d.MathClass.call(this);
+c3d.Vec3 = function(x, y, z) {
+	c3d.MathClass.call(this);
 	this.x = x || 0.0;
 	this.y = y || 0.0;
 	this.z = z || 0.0;
 };
-a3d.inherits(a3d.Vec3, a3d.MathClass);
+c3d.inherits(c3d.Vec3, c3d.MathClass);
 
-a3d.Vec3.prototype.ident = function() {
+c3d.Vec3.prototype.ident = function() {
 	this.x = 1.0; this.y = 1.0; this.z = 1.0;
 	return this;
 };
-a3d.Vec3.prototype.zero = function() {
+c3d.Vec3.prototype.zero = function() {
 	this.x = 0.0; this.y = 0.0; this.z = 0.0;
 	return this;
 };
-a3d.Vec3.prototype.clone = function() {
-	return new a3d.Vec3(this.x, this.y, this.z);
+c3d.Vec3.prototype.clone = function() {
+	return new c3d.Vec3(this.x, this.y, this.z);
 };
-a3d.Vec3.prototype.set = function(v) {
+c3d.Vec3.prototype.set = function(v) {
 	this.x = v.x; this.y = v.y; this.z = v.z;
 	
 	return this;
 };
 
 // Scalar operations
-a3d.Vec3.prototype.mul = function(s) {
+c3d.Vec3.prototype.mul = function(s) {
 	this.x *= s; this.y *= s; this.z *= s;
 	return this;
 };
-a3d.Vec3.prototype.div = function(s) {
+c3d.Vec3.prototype.div = function(s) {
 	s = 1/s;
 	this.x *= s; this.y *= s; this.z *= s;
 	return this;
 };
-a3d.Vec3.prototype.neg = function() {
+c3d.Vec3.prototype.neg = function() {
 	this.x = -this.x; this.y = -this.y; this.z = -this.z;
 	return this;
 };
 
 // Vector operations
-a3d.Vec3.prototype.add = function(v) {
+c3d.Vec3.prototype.add = function(v) {
 	this.x += v.x; this.y += v.y; this.z += v.z;
 	return this;
 };
-a3d.Vec3.prototype.sub = function(v) {
+c3d.Vec3.prototype.sub = function(v) {
 	this.x -= v.x; this.y -= v.y; this.z -= v.z;
 	return this;
 };
-a3d.Vec3.prototype.dot = function(v) {
+c3d.Vec3.prototype.dot = function(v) {
 	return this.x*v.x + this.y*v.y + this.z*v.z;
 };
-a3d.Vec3.prototype.cross = function(v) {
+c3d.Vec3.prototype.cross = function(v) {
 	this.x = this.y*v.z - this.z*v.y;
 	this.y = this.z*v.x - this.x*v.z;
 	this.z = this.x*v.y - this.y*v.x;
@@ -89,40 +89,40 @@ a3d.Vec3.prototype.cross = function(v) {
 
 // Miscellaneous
 
-a3d.Vec3.prototype.len = function() {
+c3d.Vec3.prototype.len = function() {
 	return this.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
 };
-a3d.Vec3.prototype.len2 = function() {
+c3d.Vec3.prototype.len2 = function() {
 	return this.x*this.x + this.y*this.y + this.z*this.z;
 };
-a3d.Vec3.prototype.norm = function() {
+c3d.Vec3.prototype.norm = function() {
 	var l = this.len();
 	this.div(l);
 	return this;
 };
 
-a3d.Vec3.prototype.eq = function(v) {
+c3d.Vec3.prototype.eq = function(v) {
 	return ((this.abs(this.x - v.x) < 0) && (this.abs(this.y - v.y) < 0) && (this.abs(this.z - v.z) < 0));
 };
 
-a3d.Vec3.prototype.dist = function(v) {
+c3d.Vec3.prototype.dist = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y, dz = v.z - this.z;
 	return this.sqrt(dx*dx + dy*dy + dz*dz);
 };
-a3d.Vec3.prototype.dist2 = function(v) {
+c3d.Vec3.prototype.dist2 = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y, dz = v.z - this.z;
 	return dx*dx + dy*dy + dz*dz;
 };
-a3d.Vec3.prototype.dist2d = function(v) {
+c3d.Vec3.prototype.dist2d = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y;
 	return this.sqrt(dx*dx + dy*dy);
 };
-a3d.Vec3.prototype.dist2d2 = function(v) {
+c3d.Vec3.prototype.dist2d2 = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y;
 	return dx*dx + dy*dy;
 };
 
-a3d.Vec3.prototype.trans = function(m, v) {
+c3d.Vec3.prototype.trans = function(m, v) {
 	var vx = v.x, vy = v.y, vz = v.z;
 	
 	this.x = m._11*vx + m._12*vy + m._13*vz + m._14;
@@ -133,96 +133,96 @@ a3d.Vec3.prototype.trans = function(m, v) {
 };
 
 // Pretty darn slow function, but it should only be used in debugging anyway.
-a3d.Vec3.prototype.toString = function() {
+c3d.Vec3.prototype.toString = function() {
 	return 'vec3: (' + this.x + ',' + this.y + ',' + this.z + ')';
 };
 
-/** @const */ a3d.X = new a3d.Vec3(1.0, 0.0, 0.0);
-/** @const */ a3d.Y = new a3d.Vec3(0.0, 1.0, 0.0);
-/** @const */ a3d.Z = new a3d.Vec3(0.0, 0.0, 1.0);
+/** @const */ c3d.X = new c3d.Vec3(1.0, 0.0, 0.0);
+/** @const */ c3d.Y = new c3d.Vec3(0.0, 1.0, 0.0);
+/** @const */ c3d.Z = new c3d.Vec3(0.0, 0.0, 1.0);
 
-/** @const */ a3d.NX = new a3d.Vec3(-1.0, 0.0, 0.0);
-/** @const */ a3d.NY = new a3d.Vec3(0.0, -1.0, 0.0);
-/** @const */ a3d.NZ = new a3d.Vec3(0.0, 0.0, -1.0);
+/** @const */ c3d.NX = new c3d.Vec3(-1.0, 0.0, 0.0);
+/** @const */ c3d.NY = new c3d.Vec3(0.0, -1.0, 0.0);
+/** @const */ c3d.NZ = new c3d.Vec3(0.0, 0.0, -1.0);
 
-/** @const */ a3d.Vec3.ZERO = new a3d.Vec3();
+/** @const */ c3d.Vec3.ZERO = new c3d.Vec3();
 
 /**
  * @param {number} x
  * @param {number} y
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Vec2 = function(x, y) {
-	a3d.MathClass.call(this);
+c3d.Vec2 = function(x, y) {
+	c3d.MathClass.call(this);
 	this.x = x || 0.0;
 	this.y = y || 0.0;
 };
-a3d.inherits(a3d.Vec2, a3d.MathClass);
+c3d.inherits(c3d.Vec2, c3d.MathClass);
 	
-a3d.Vec2.prototype.ident = function() {
+c3d.Vec2.prototype.ident = function() {
 	this.x = 1.0; this.y = 1.0;
 };
-a3d.Vec2.prototype.zero = function() {
+c3d.Vec2.prototype.zero = function() {
 	this.x = 0.0; this.y = 0.0;
 };
-a3d.Vec2.prototype.clone = function() {
-	return new a3d.Vec2(this.x, this.y);
+c3d.Vec2.prototype.clone = function() {
+	return new c3d.Vec2(this.x, this.y);
 };
-a3d.Vec2.prototype.set = function(v) {
+c3d.Vec2.prototype.set = function(v) {
 	this.x = v.x; this.y = v.y;
 	
 	return this;
 };
 
 // Scalar operations
-a3d.Vec2.prototype.mul = function(s) {
+c3d.Vec2.prototype.mul = function(s) {
 	this.x *= s; this.y *= s;
 };
-a3d.Vec2.prototype.div = function(s) {
+c3d.Vec2.prototype.div = function(s) {
 	s = 1.0/s;
 	this.x *= s; this.y *= s;
 };
 
 // Vector operations
-a3d.Vec2.prototype.add = function(v) {
+c3d.Vec2.prototype.add = function(v) {
 	this.x += v.x; this.y += v.y;
 	return this;
 };
-a3d.Vec2.prototype.sub = function(v) {
+c3d.Vec2.prototype.sub = function(v) {
 	this.x -= v.x; this.y -= v.y;
 	return this;
 };
-a3d.Vec2.prototype.dot = function(v) {
+c3d.Vec2.prototype.dot = function(v) {
 	return this.x*v.x + this.y*v.y;
 };
 
-a3d.Vec2.prototype.dist = function(v) {
+c3d.Vec2.prototype.dist = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y;
 	return this.sqrt(dx*dx + dy*dy);
 };
-a3d.Vec2.prototype.dist2 = function(v) {
+c3d.Vec2.prototype.dist2 = function(v) {
 	var dx = v.x - this.x, dy = v.y - this.y;
 	return dx*dx + dy*dy;
 };
 
 // Miscellaneous
 
-a3d.Vec2.prototype.len = function() {
+c3d.Vec2.prototype.len = function() {
 	return this.sqrt(this.x*this.x + this.y*this.y);
 };
-a3d.Vec2.prototype.len2 = function() {
+c3d.Vec2.prototype.len2 = function() {
 	return this.x*this.x + this.y*this.y;
 };
-a3d.Vec2.prototype.norm = function() {
+c3d.Vec2.prototype.norm = function() {
 	var l = this.len();
 	this.div(l);
 };
 
-a3d.Vec2.prototype.eq = function(v) {
+c3d.Vec2.prototype.eq = function(v) {
 	return ((this.abs(this.x - v.x) < 0) && (this.abs(this.y - v.y) < 0));
 };
-a3d.Vec2.prototype.trans = function(m, v) {
+c3d.Vec2.prototype.trans = function(m, v) {
 	var vx = v.x, vy = v.y;
 	
 	this.x = m._11*vx + m._21*vy + m._13;
@@ -230,7 +230,7 @@ a3d.Vec2.prototype.trans = function(m, v) {
 	
 	return this;
 };
-a3d.Vec2.prototype.trans2 = function(m, v) {
+c3d.Vec2.prototype.trans2 = function(m, v) {
 	var vx = v.x, vy = v.y;
 	
 	this.x = m._11*vx + m._21*vy;
@@ -240,29 +240,29 @@ a3d.Vec2.prototype.trans2 = function(m, v) {
 };
 
 // Pretty darn slow function, but it should only be used in debugging anyway.
-a3d.Vec2.prototype.toString = function() {
+c3d.Vec2.prototype.toString = function() {
 	return 'vec2: (' + this.x + ',' + this.y + ')';
 };
 
 /**
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Quat = function() {
-	a3d.MathClass.call(this);
+c3d.Quat = function() {
+	c3d.MathClass.call(this);
 	this.ident();	// this should get inlined by the compiler
 };
-a3d.inherits(a3d.Quat, a3d.MathClass);
+c3d.inherits(c3d.Quat, c3d.MathClass);
 	
-a3d.Quat.prototype.ident = function() {
+c3d.Quat.prototype.ident = function() {
 	this.x = 0.0; this.y = 0.0; this.z = 0.0; this.w = 1.0;
 };
-a3d.Quat.prototype.zero = function() {
+c3d.Quat.prototype.zero = function() {
 	this.x = 0.0; this.y = 0.0; this.z = 0.0; this.w = 0.0;
 };
 
 // Rotation about an axis vector v by angle a
-a3d.Quat.prototype.fromRotAxis = function(v, a) {
+c3d.Quat.prototype.fromRotAxis = function(v, a) {
 	var halfA = a*0.5;
 	var cosA = this.cos(halfA), sinA = this.sin(halfA);
 
@@ -271,13 +271,13 @@ a3d.Quat.prototype.fromRotAxis = function(v, a) {
 	this.norm();
 };
 
-a3d.Quat.prototype.len = function() {
+c3d.Quat.prototype.len = function() {
 	return this.sqrt(this.x*this.x + this.y*this.y + this.z*this.z + this.w*this.w);
 };
-a3d.Quat.prototype.len2 = function() {
+c3d.Quat.prototype.len2 = function() {
 	return this.x*this.x + this.y*this.y + this.z*this.z + this.w*this.w;
 };
-a3d.Quat.prototype.norm = function() {
+c3d.Quat.prototype.norm = function() {
 	var l = this.len();
 	l = 1.0/l;
 	this.x *= l; this.y *= l; this.z *= l; this.w *= l;
@@ -285,7 +285,7 @@ a3d.Quat.prototype.norm = function() {
 	return this;
 };
 
-a3d.Quat.prototype.mulq = function(q1, q2) {
+c3d.Quat.prototype.mulq = function(q1, q2) {
 	var x1 = q1.x, y1 = q1.y, z1 = q1.z, w1 = q1.w;
 	var x2 = q2.x, y2 = q2.y, z2 = q2.z, w2 = q2.w;
 
@@ -294,7 +294,7 @@ a3d.Quat.prototype.mulq = function(q1, q2) {
 	this.z = w1*z2 + z1*w2 + x1*y2 - y1*x2;
 	this.w = w1*w2 - x1*x2 - y1*y2 - z1*z2;
 };
-a3d.Quat.prototype.mul = function(q2) {
+c3d.Quat.prototype.mul = function(q2) {
 	var x1 = this.x, y1 = this.y, z1 = this.z, w1 = this.w;
 	var x2 = q2.x, y2 = q2.y, z2 = q2.z, w2 = q2.w;
 
@@ -306,39 +306,39 @@ a3d.Quat.prototype.mul = function(q2) {
 
 /**
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Rect = function(x, y, w, h) {
-	a3d.MathClass.call(this);
+c3d.Rect = function(x, y, w, h) {
+	c3d.MathClass.call(this);
 	
 	this.x = x || 0; this.y = y || 0; this.w = w || 0; this.h = h || 0;
 };
-a3d.inherits(a3d.Rect, a3d.MathClass);
+c3d.inherits(c3d.Rect, c3d.MathClass);
 
 /**
  * NOTE: I ran a pile of benchmarks comparing instance scratch variables to local scratch variables to no scratch variables.
  * local scratch variables were fastest in all modern browsers.
  * 
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Mat4 = function() {
-	a3d.MathClass.call(this);
+c3d.Mat4 = function() {
+	c3d.MathClass.call(this);
 	this.ident();	// this should get inlined by the compiler
 	this.els = [this._11, this._12, this._13, this._14,
 		        this._21, this._22, this._23, this._24,
 				this._31, this._32, this._33, this._34,
 				this._41, this._42, this._43, this._44];
 };
-a3d.inherits(a3d.Mat4, a3d.MathClass);
+c3d.inherits(c3d.Mat4, c3d.MathClass);
 	
-a3d.Mat4.prototype.ident = function() {
+c3d.Mat4.prototype.ident = function() {
 	this._11 = 1.0; this._12 = 0.0; this._13 = 0.0; this._14 = 0.0;
 	this._21 = 0.0; this._22 = 1.0; this._23 = 0.0; this._24 = 0.0;
 	this._31 = 0.0; this._32 = 0.0; this._33 = 1.0; this._34 = 0.0;
 	this._41 = 0.0; this._42 = 0.0; this._43 = 0.0; this._44 = 1.0;
 };
-a3d.Mat4.prototype.zero = function() {
+c3d.Mat4.prototype.zero = function() {
 	this._11 = this._12 = this._13 = this._14 =
 	this._21 = this._22 = this._23 = this._24 =
 	this._31 = this._32 = this._33 = this._34 =
@@ -346,11 +346,11 @@ a3d.Mat4.prototype.zero = function() {
 };
 
 // TODO: This could use some optimization probably
-a3d.Mat4.prototype.fromArray = function(el) {
-	a3d.setupMap(this, this.els, el);
+c3d.Mat4.prototype.fromArray = function(el) {
+	c3d.setupMap(this, this.els, el);
 };
 
-a3d.Mat4.prototype.det3 = function() {
+c3d.Mat4.prototype.det3 = function() {
 	var m11 = this._11, m12 = this._12, m13 = this._13,
 	    m21 = this._21, m22 = this._22, m23 = this._23,
 	    m31 = this._31, m32 = this._32, m33 = this._33;
@@ -359,7 +359,7 @@ a3d.Mat4.prototype.det3 = function() {
 	     - (m11*m32 - m31*m12)*m23
 	     + (m21*m32 - m31*m22)*m13;
 };
-a3d.Mat4.prototype.det4 = function() {
+c3d.Mat4.prototype.det4 = function() {
 	var m11 = this._11, m12 = this._12, m13 = this._13, m14 = this._14,
 	    m21 = this._21, m22 = this._22, m23 = this._23, m24 = this._24,
 	    m31 = this._31, m32 = this._32, m33 = this._33, m34 = this._34,
@@ -373,7 +373,7 @@ a3d.Mat4.prototype.det4 = function() {
 		 + (m31*m42 - m41*m32)*(m13*m24 - m23*m14);
 };
 
-a3d.Mat4.prototype.inv3m = function(m) {
+c3d.Mat4.prototype.inv3m = function(m) {
 	var d = this.det3();
 	if (this.abs(d) < 0.0001) return;
 	
@@ -396,12 +396,12 @@ a3d.Mat4.prototype.inv3m = function(m) {
 	this._33 =  d*(m11*m22 - m21*m12),
 	this._34 = -d*(m11*(m22*m34 - m32*m24) - m21 * (m12*m34 - m32*m14) + m31 * (m12*m24 - m22*m14));
 };
-a3d.Mat4.prototype.inv3 = function() {
+c3d.Mat4.prototype.inv3 = function() {
 	this.inv3m(this);
 };
 
 // m1*m2, apply to self
-a3d.Mat4.prototype.mul3m = function(m1, m2) {
+c3d.Mat4.prototype.mul3m = function(m1, m2) {
 	var m111 = m1._11, m112 = m1._12, m113 = m1._13,
 	    m121 = m1._21, m122 = m1._22, m123 = m1._23,
 	    m131 = m1._31, m132 = m1._32, m133 = m1._33;
@@ -427,7 +427,7 @@ a3d.Mat4.prototype.mul3m = function(m1, m2) {
 	this._43 = m1._43;
 };
 // Times-equals, apply to self
-a3d.Mat4.prototype.mul3 = function(m2) {
+c3d.Mat4.prototype.mul3 = function(m2) {
 	var m111 = this._11, m112 = this._12, m113 = this._13,
 	    m121 = this._21, m122 = this._22, m123 = this._23,
 	    m131 = this._31, m132 = this._22, m133 = this._33;
@@ -449,7 +449,7 @@ a3d.Mat4.prototype.mul3 = function(m2) {
 	this._33 = m131*m213 + m132*m223 + m133*m233;
 };
 
-a3d.Mat4.prototype.mulm = function(m1, m2) {
+c3d.Mat4.prototype.mulm = function(m1, m2) {
 	var m111 = m1._11, m112 = m1._12, m113 = m1._13, m114 = m1._14,
 	    m121 = m1._21, m122 = m1._22, m123 = m1._23, m124 = m1._24,
 	    m131 = m1._31, m132 = m1._32, m133 = m1._33, m134 = m1._34;
@@ -473,46 +473,46 @@ a3d.Mat4.prototype.mulm = function(m1, m2) {
 	this._33 = m131*m213 + m132*m223 + m133*m233;
 	this._34 = m131*m214 + m132*m224 + m133*m234 + m134;
 };
-a3d.Mat4.prototype.mul = function(m2) {
+c3d.Mat4.prototype.mul = function(m2) {
 
 };
 
-a3d.Mat4.prototype.scale = function(sx, sy, sz) {
+c3d.Mat4.prototype.scale = function(sx, sy, sz) {
 	if (sx) this._11 *= sx; this._12 *= sx; this._13 *= sx;
 	if (sy) this._21 *= sy; this._22 *= sy; this._23 *= sy;
 	if (sz) this._31 *= sz; this._32 *= sz; this._33 *= sz;
 };
-a3d.Mat4.prototype.scalev = function(v) {
+c3d.Mat4.prototype.scalev = function(v) {
 	var sx = v.x, sy = v.y, sz = v.z;
 	this._11 *= sx; this._12 *= sx; this._13 *= sx;
 	this._21 *= sy; this._22 *= sy; this._23 *= sy;
 	this._31 *= sz; this._32 *= sz; this._33 *= sz;
 };
 // NOTE: The following functions are very expensive, don't use them if you can help it
-a3d.Mat4.prototype.scaleX = function() {
+c3d.Mat4.prototype.scaleX = function() {
 	return this.sqrt(this._11*this._11 + this._12*this._12 + this._13*this._13);
 };
-a3d.Mat4.prototype.scaleY = function() {
+c3d.Mat4.prototype.scaleY = function() {
 	return this.sqrt(this._21*this._21 + this._22*this._22 + this._23*this._23);
 };
-a3d.Mat4.prototype.scaleZ = function() {
+c3d.Mat4.prototype.scaleZ = function() {
 	return this.sqrt(this._31*this._31 + this._32*this._32 + this._33*this._33);
 };
 
-a3d.Mat4.prototype.moveTo = function(x, y, z) {
+c3d.Mat4.prototype.moveTo = function(x, y, z) {
 	this._14 = x; this._24 = y; this._34 = z;
 };
-a3d.Mat4.prototype.moveBy = function(x, y, z) {
+c3d.Mat4.prototype.moveBy = function(x, y, z) {
 	this._14 += x; this._24 += y; this._34 += z;
 };
-a3d.Mat4.prototype.moveToV = function(v) {
+c3d.Mat4.prototype.moveToV = function(v) {
 	this._14 = v.x; this._24 = v.y; this._34 = v.z;
 };
-a3d.Mat4.prototype.moveByV = function(v) {
+c3d.Mat4.prototype.moveByV = function(v) {
 	this._14 += v.x; this._24 += v.y; this._34 += v.z;
 };
 
-a3d.Mat4.prototype.perspective = function(aspRatio, fov, nearZ, farZ) {
+c3d.Mat4.prototype.perspective = function(aspRatio, fov, nearZ, farZ) {
 	var fovRad = fov*0.5*this.PI/180.0;
 	var tanFov = Math.tan(fovRad);
 	var invTan = 1.0/tanFov;
@@ -534,7 +534,7 @@ a3d.Mat4.prototype.perspective = function(aspRatio, fov, nearZ, farZ) {
 };
 
 // Build a 3x3 rotation matrix, rotate angle a about vector v
-a3d.Mat4.prototype.fromRotAxis = function(v, a) {
+c3d.Mat4.prototype.fromRotAxis = function(v, a) {
 	var vx = v.x, vy = v.y, vz = v.z;
 	var cosA = this.cos(a), sinA = this.sin(a);
 	var cosIA = 1.0 - cosA;
@@ -560,7 +560,7 @@ a3d.Mat4.prototype.fromRotAxis = function(v, a) {
 	this._33 = cosA + vz*vz*cosIA;
 };
 
-a3d.Mat4.prototype.fromQuat = function(q) {
+c3d.Mat4.prototype.fromQuat = function(q) {
 	var x = q.x, y = q.y, z = q.z, w = q.w;
 	
 	var xx = x*x, xy = x*y, xz = x*z, xw = x*w
@@ -580,12 +580,12 @@ a3d.Mat4.prototype.fromQuat = function(q) {
 	this._33 = 1.0 - (xx + yy)*2.0;
 };
 
-a3d.Mat4.prototype.pos = function() {
-	return new a3d.Vec3(this._14, this._24, this._34);
+c3d.Mat4.prototype.pos = function() {
+	return new c3d.Vec3(this._14, this._24, this._34);
 };
 
 // Pretty darn slow function, but it should only be used in debugging anyway.
-a3d.Mat4.prototype.toString = function() {
+c3d.Mat4.prototype.toString = function() {
 	return 'mat4: [' +
 	'[' + [this._11, this._12, this._13, this._14].join(',') + '],' +
 	'[' + [this._21, this._22, this._23, this._24].join(',') + '],' +
@@ -596,44 +596,44 @@ a3d.Mat4.prototype.toString = function() {
 
 /**
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Mat3 = function() {
-	a3d.MathClass.call(this);
+c3d.Mat3 = function() {
+	c3d.MathClass.call(this);
 	this.ident();	// this should get inlined by the compiler
 	this.els = [this._11, this._12, this._13,
 		        this._21, this._22, this._23,
 				this._31, this._32, this._33];
 };
-a3d.inherits(a3d.Mat3, a3d.MathClass);
+c3d.inherits(c3d.Mat3, c3d.MathClass);
 
-a3d.Mat3.prototype.ident = function() {
+c3d.Mat3.prototype.ident = function() {
 	this._11 = 1.0; this._12 = 0.0; this._13 = 0.0;
 	this._21 = 0.0; this._22 = 1.0; this._23 = 0.0;
 	this._31 = 0.0; this._32 = 0.0; this._33 = 1.0;
 };
-a3d.Mat3.prototype.zero = function() {
+c3d.Mat3.prototype.zero = function() {
 	this._11 = this._12 = this._13 =
 	this._21 = this._22 = this._23 =
 	this._31 = this._32 = this._33 = 0.0;
 };
 
 // TODO: This could use some optimization probably
-a3d.Mat3.prototype.fromArray = function(el) {
-	a3d.setupMap(this, this.els, el);
+c3d.Mat3.prototype.fromArray = function(el) {
+	c3d.setupMap(this, this.els, el);
 };
-a3d.Mat3.prototype.fromVec3Rows = function(v1, v2, v3) {
+c3d.Mat3.prototype.fromVec3Rows = function(v1, v2, v3) {
 	this._11 = v1.x; this._12 = v1.y; this._13 = v1.z;
 	this._21 = v2.x; this._22 = v2.y; this._23 = v2.z;
 	this._31 = v3.x; this._32 = v3.y; this._33 = v3.z;
 };
-a3d.Mat3.prototype.fromVec3Cols = function(v1, v2, v3) {
+c3d.Mat3.prototype.fromVec3Cols = function(v1, v2, v3) {
 	this._11 = v1.x; this._12 = v2.x; this._13 = v3.x;
 	this._21 = v1.y; this._22 = v2.y; this._23 = v3.y;
 	this._31 = v1.z; this._32 = v2.z; this._33 = v3.z;
 };
 
-a3d.Mat3.prototype.det = function() {
+c3d.Mat3.prototype.det = function() {
 	var m11 = this._11, m12 = this._12, m13 = this._13,
 	    m21 = this._21, m22 = this._22, m23 = this._23,
 	    m31 = this._31, m32 = this._32, m33 = this._33;
@@ -643,7 +643,7 @@ a3d.Mat3.prototype.det = function() {
 		 + m13*(m21*m32 - m22*m31);
 };
 // TODO: Optimize this by avoiding the det() call: dont duplicate multiplies
-a3d.Mat3.prototype.invm = function(m) {
+c3d.Mat3.prototype.invm = function(m) {
 	var d = m.det();
 	if (this.abs(d) < 0.0001) return null;
 	
@@ -665,12 +665,12 @@ a3d.Mat3.prototype.invm = function(m) {
 	
 	return this;
 };
-a3d.Mat3.prototype.inv = function() {
+c3d.Mat3.prototype.inv = function() {
 	return this.invm(this);
 };
 
 // m1*m2, apply to self
-a3d.Mat3.prototype.mul2m = function(m1, m2) {
+c3d.Mat3.prototype.mul2m = function(m1, m2) {
 	var m111 = m1._11, m112 = m1._12,
 	    m121 = m1._21, m122 = m1._22;
 	
@@ -686,7 +686,7 @@ a3d.Mat3.prototype.mul2m = function(m1, m2) {
 	this._23 = m1._23;
 }
 // Times-equals, apply to self
-a3d.Mat3.prototype.mul2 = function(m2) {
+c3d.Mat3.prototype.mul2 = function(m2) {
 	var m111 = this._11, m112 = this._12,
 	    m121 = this._21, m122 = this._22;
 	
@@ -701,7 +701,7 @@ a3d.Mat3.prototype.mul2 = function(m2) {
 };
 
 // m1*m2, apply to self
-a3d.Mat3.prototype.mulm = function(m1, m2) {
+c3d.Mat3.prototype.mulm = function(m1, m2) {
 	var m111 = m1._11, m112 = m1._12, m113 = m1._13,
 	    m121 = m1._21, m122 = m1._22, m123 = m1._23,
 	    m131 = m1._31, m132 = m1._32, m133 = m1._33;
@@ -723,7 +723,7 @@ a3d.Mat3.prototype.mulm = function(m1, m2) {
 	this._33 = m131*m213 + m132*m223 + m133*m233;
 };
 // Times-equals, apply to self
-a3d.Mat3.prototype.mul = function(m2) {
+c3d.Mat3.prototype.mul = function(m2) {
 	var m111 = this._11, m112 = this._12, m113 = this._13,
 	    m121 = this._21, m122 = this._22, m123 = this._23,
 	    m131 = this._31, m132 = this._22, m133 = this._33;
@@ -745,27 +745,27 @@ a3d.Mat3.prototype.mul = function(m2) {
 	this._33 = m131*m213 + m132*m223 + m133*m233;
 };
 
-a3d.Mat3.prototype.scale = function(s) {
+c3d.Mat3.prototype.scale = function(s) {
 	this._11 *= s; this._12 *= s;
 	this._21 *= s; this._22 *= s;
 	return this;
 };
-a3d.Mat3.prototype.scaleXY = function(sx, sy) {
+c3d.Mat3.prototype.scaleXY = function(sx, sy) {
 	this._11 *= sx; this._12 *= sx;
 	this._21 *= sy; this._22 *= sy;
 	
 	return this;
 };
 
-a3d.Mat3.prototype.moveTo = function(x, y) {
+c3d.Mat3.prototype.moveTo = function(x, y) {
 	this._13 = x; this._23 = y;
 };
-a3d.Mat3.prototype.moveBy = function(x, y) {
+c3d.Mat3.prototype.moveBy = function(x, y) {
 	this._13 += x; this._23 += y;
 };
 
-a3d.Mat3.prototype.clone = function() {
-	var c = new a3d.Mat3();
+c3d.Mat3.prototype.clone = function() {
+	var c = new c3d.Mat3();
 	c._11 = this._11; c._12 = this._12; c._13 = this._13;
 	c._21 = this._21; c._22 = this._22; c._23 = this._23;
 	c._31 = this._31; c._32 = this._32; c._33 = this._33;
@@ -774,14 +774,14 @@ a3d.Mat3.prototype.clone = function() {
 };
 
 // Pretty darn slow function, but it should only be used in debugging anyway.
-a3d.Mat3.prototype.toString = function() {
+c3d.Mat3.prototype.toString = function() {
 	return 'mat3: [' +
 	'[' + [this._11, this._12, this._13].join(',') + '],' +
 	'[' + [this._21, this._22, this._23].join(',') + '],' +
 	'[' + [this._31, this._32, this._33].join(',') +
 	']]';
 };
-a3d.Mat3.prototype.toCssString = function() {
+c3d.Mat3.prototype.toCssString = function() {
 	// NOTE: The easier method here has a nasty bug where small numbers
 	// get scientific notation, which css can't handle.
 	//return 'matrix(' + [this._11, this._12, this._21, this._22, this._13, this._23].join(',') + ')';
@@ -791,7 +791,7 @@ a3d.Mat3.prototype.toCssString = function() {
 		this._21.toFixed(12) + ',' + this._22.toFixed(12) + ',' +
 		this._13.toFixed(12) + ',' + this._23.toFixed(12) + ')';
 };
-a3d.Mat3.prototype.applyIeFilter = function(node) {
+c3d.Mat3.prototype.applyIeFilter = function(node) {
 	var f;
 	if (!(f = node.filters['DXImageTransform.Microsoft.Matrix'])) {
 		node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
@@ -807,34 +807,34 @@ a3d.Mat3.prototype.applyIeFilter = function(node) {
 
 /**
  * @constructor
- * @extends {a3d.MathClass}
+ * @extends {c3d.MathClass}
  */
-a3d.Mat2 = function() {
-	a3d.MathClass.call(this);
+c3d.Mat2 = function() {
+	c3d.MathClass.call(this);
 	this.ident();	// this should get inlined by the compiler
 	this.els = [this._11, this._12,
 	        	this._21, this._22];
 };
-a3d.inherits(a3d.Mat2, a3d.MathClass);
+c3d.inherits(c3d.Mat2, c3d.MathClass);
 	
-a3d.Mat2.prototype.ident = function() {
+c3d.Mat2.prototype.ident = function() {
 	this._11 = 1.0; this._12 = 0.0;
 	this._21 = 0.0; this._22 = 1.0;
 };
-a3d.Mat2.prototype.zero = function() {
+c3d.Mat2.prototype.zero = function() {
 	this._11 = this._12 = this._21 = this._22 = 0.0;
 };
 
 // TODO: This could use some optimization probably
-a3d.Mat2.prototype.fromArray = function(el) {
-	a3d.setupMap(this, this.els, el);
+c3d.Mat2.prototype.fromArray = function(el) {
+	c3d.setupMap(this, this.els, el);
 };
 
-a3d.Mat2.prototype.det = function() {
+c3d.Mat2.prototype.det = function() {
 	return this._11*this._22 - this._12*this._21;
 };
 // TODO: Optimize this by avoiding the det() call: dont duplicate multiplies
-a3d.Mat2.prototype.inv = function() {
+c3d.Mat2.prototype.inv = function() {
 	var d = this.det();
 	if (d < 0.0001 && d > -0.0001) return null;
 	
@@ -846,7 +846,7 @@ a3d.Mat2.prototype.inv = function() {
 	return this;
 };
 
-a3d.Mat2.prototype.invm = function(m) {
+c3d.Mat2.prototype.invm = function(m) {
 	var d = m.det();
 	if (d < 0.0001 && d > -0.0001) return null;
 	
@@ -859,7 +859,7 @@ a3d.Mat2.prototype.invm = function(m) {
 };
 
 // m1*m2, apply to self
-a3d.Mat2.prototype.mulm = function(m1, m2) {
+c3d.Mat2.prototype.mulm = function(m1, m2) {
 	var m111 = m1._11, m112 = m1._12,
 	    m121 = m1._21, m122 = m1._22;
 	
@@ -873,7 +873,7 @@ a3d.Mat2.prototype.mulm = function(m1, m2) {
 	this._22 = m121*m212 + m122*m222;
 };
 
-a3d.Mat2.prototype.mul = function(m2) {
+c3d.Mat2.prototype.mul = function(m2) {
 	var m111 = this._11, m112 = this._12,
 	    m121 = this._21, m122 = this._22;
 	
@@ -887,21 +887,21 @@ a3d.Mat2.prototype.mul = function(m2) {
 	this._22 = m121*m212 + m122*m222;
 };
 
-a3d.Mat2.prototype.scale = function(s) {
+c3d.Mat2.prototype.scale = function(s) {
 	this._11 *= s; this._12 *= s;
 	this._21 *= s; this._22 *= s;
 	
 	return this;
 };
-a3d.Mat2.prototype.scaleXY = function(sx, sy) {
+c3d.Mat2.prototype.scaleXY = function(sx, sy) {
 	this._11 *= sx; this._12 *= sx;
 	this._21 *= sy; this._22 *= sy;
 	
 	return this;
 };
 
-a3d.Mat2.prototype.clone = function() {
-	var c = new a3d.Mat2();
+c3d.Mat2.prototype.clone = function() {
+	var c = new c3d.Mat2();
 	c._11 = this._11; c._12 = this._12;
 	c._21 = this._21; c._22 = this._22;
 	
@@ -909,13 +909,13 @@ a3d.Mat2.prototype.clone = function() {
 };
 
 // Pretty darn slow function, but it should only be used in debugging anyway.
-a3d.Mat2.prototype.toString = function() {
+c3d.Mat2.prototype.toString = function() {
 	return 'mat2: [' +
 	'[' + [this._11, this._12].join(',') + '],' +
 	'[' + [this._21, this._22].join(',') +
 	']]';
 };
-a3d.Mat2.prototype.toCssString = function() {
+c3d.Mat2.prototype.toCssString = function() {
 	//return 'matrix(' + [this._11, this._12, this._21, this._22, 0, 0].join(',') + ')';
 	
 	// NOTE: The easier method here has a nasty bug where small numbers
@@ -926,7 +926,7 @@ a3d.Mat2.prototype.toCssString = function() {
 	return 'matrix(' + this._11.toFixed(12) + ',' + this._12.toFixed(12) + ',' +
 		this._21.toFixed(12) + ',' + this._22.toFixed(12) + ',0,0)';
 };
-a3d.Mat2.prototype.applyIeFilter = function(node) {
+c3d.Mat2.prototype.applyIeFilter = function(node) {
 	var f;
 	if (!(f = node.filters['DXImageTransform.Microsoft.Matrix'])) {
 		node.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
@@ -940,6 +940,6 @@ a3d.Mat2.prototype.applyIeFilter = function(node) {
 };
 
 // Identity matrices
-/** @const */ a3d.M4 = new a3d.Mat4();
-/** @const */ a3d.M3 = new a3d.Mat3();
-/** @const */ a3d.M2 = new a3d.Mat2();
+/** @const */ c3d.M4 = new c3d.Mat4();
+/** @const */ c3d.M3 = new c3d.Mat3();
+/** @const */ c3d.M2 = new c3d.Mat2();

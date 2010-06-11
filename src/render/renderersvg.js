@@ -1,16 +1,16 @@
 /**
  * @constructor
- * @extends {a3d.RendererBase}
+ * @extends {c3d.RendererBase}
  */
-a3d.RendererSVG = function(cfg) {
+c3d.RendererSVG = function(cfg) {
 	this.ns = 'http://www.w3.org/2000/svg';
-	a3d.RendererBase.call(this, cfg);
+	c3d.RendererBase.call(this, cfg);
 	
 	if (!this.viewport) return;
 	
 	this.tris = [];
 	this.triCount = 0;
-	this.m = new a3d.Mat4();
+	this.m = new c3d.Mat4();
 	
 	var vn = this.viewport.node;
 	var vw = vn.offsetWidth, vh = vn.offsetHeight;
@@ -43,9 +43,9 @@ a3d.RendererSVG = function(cfg) {
 	pt.setAttribute('fill', '#000000');
 	this.pt = pt;
 };
-a3d.inherits(a3d.RendererSVG, a3d.RendererBase);
+c3d.inherits(c3d.RendererSVG, c3d.RendererBase);
 	
-a3d.RendererSVG.prototype._clear = function() {
+c3d.RendererSVG.prototype._clear = function() {
 	//var g = this.g;
 	//while (g.lastChild) {
 	//	g.removeChild(g.lastChild);
@@ -61,11 +61,11 @@ a3d.RendererSVG.prototype._clear = function() {
 	this.triCount = 0;
 };
 
-a3d.RendererSVG.prototype._flip = function() {
+c3d.RendererSVG.prototype._flip = function() {
 	
 };
 
-a3d.RendererSVG.prototype.drawPoint = function(pm, col) {
+c3d.RendererSVG.prototype.drawPoint = function(pm, col) {
 	var m = this.m;
 	
 	m.mulm(this.viewM, pm);
@@ -74,7 +74,7 @@ a3d.RendererSVG.prototype.drawPoint = function(pm, col) {
 	if (tz < 0.0001) return;
 	
 	var vw = this.vw, vh = this.vh;
-	//a3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
+	//c3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
 	if (tx < 0 || tx >= vw || ty < 0 || ty >= vh) return;
 	
 	var ns = this.ns;
@@ -87,11 +87,11 @@ a3d.RendererSVG.prototype.drawPoint = function(pm, col) {
 	this.g.appendChild(pt);
 };
 
-a3d.RendererSVG.prototype.drawLines = function(pm, col) {
+c3d.RendererSVG.prototype.drawLines = function(pm, col) {
 	
 };
 
-a3d.RendererSVG.prototype.drawTriangle = function(pm, tri) {
+c3d.RendererSVG.prototype.drawTriangle = function(pm, tri) {
 	var m = this.m;
 	m.mulm(this.viewM, pm);
 	var tx = m._14, ty = m._24, tz = m._34;

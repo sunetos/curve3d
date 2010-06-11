@@ -1,11 +1,11 @@
 
-a3d.Render = {};
+c3d.Render = {};
 
 /**
  * Enum for render projection (orthographic or perspective).
  * @enum {number}
  */
-a3d.Render.Projection = {
+c3d.Render.Projection = {
 	  ORTHO: 1
 	, PERSP: 2
 };
@@ -13,7 +13,7 @@ a3d.Render.Projection = {
  * Enum for render detail level (points, wireframe, solid color, textured).
  * @enum {number}
  */
-a3d.Render.Detail = {
+c3d.Render.Detail = {
 	  PTS: 1
 	, WIRE: 2
 	, COLOR: 4
@@ -23,7 +23,7 @@ a3d.Render.Detail = {
  * Enum for render element required (polygons, sprites).
  * @enum {number}
  */
-a3d.Render.Geometry = {
+c3d.Render.Geometry = {
 	  NONE: 1
 	, POLY: 2
 	, SPRITE: 4
@@ -32,12 +32,12 @@ a3d.Render.Geometry = {
 /** 
  * A special scenegraph Node that represents a camera for a viewport.
  * @constructor
- * @extends {a3d.Node}
+ * @extends {c3d.Node}
  */
-a3d.Camera = function(cfg) {
+c3d.Camera = function(cfg) {
 	this.viewport = null;
-	this.projection = a3d.Render.Projection.ORTHO;
-	this.detail = a3d.Render.Detail.TXTUR;
+	this.projection = c3d.Render.Projection.ORTHO;
+	this.detail = c3d.Render.Detail.TXTUR;
 	this.aspRatio = 1.0;
 	this.fov = 90.0;
 	this.nearZ = 0.01;
@@ -46,26 +46,26 @@ a3d.Camera = function(cfg) {
 	this.vw = 0;
 	this.vh = 0;
 	
-	a3d.setup(this, cfg);
+	c3d.setup(this, cfg);
 	
-	this.viewM = new a3d.Mat4();
-	this.invM = new a3d.Mat4();
+	this.viewM = new c3d.Mat4();
+	this.invM = new c3d.Mat4();
 	
 	// scratch vars
-	this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
+	this.sv1 = new c3d.Vec3(); this.sv2 = new c3d.Vec3(); this.sv3 = new c3d.Vec3();
 	
-	a3d.Node.call(this);
+	c3d.Node.call(this);
 };
-a3d.inherits(a3d.Camera, a3d.Node);
+c3d.inherits(c3d.Camera, c3d.Node);
 	
-a3d.Camera.prototype.viewportResize = function() {
+c3d.Camera.prototype.viewportResize = function() {
 	this.vw = this.viewport.w;
 	this.vh = this.viewport.h;
 	this.aspRatio = this.vw/this.vh;
 	
 	var m = this.viewM;
 	
-	if (this.projection == a3d.Render.Projection.ORTHO) {
+	if (this.projection == c3d.Render.Projection.ORTHO) {
 		m.ident();
 	} else {
 		m.perspective(this.aspRatio, this.fov, this.nearZ, this.farZ);
@@ -77,13 +77,13 @@ a3d.Camera.prototype.viewportResize = function() {
 };
 
 // Project from world coordinates to screen coordinates. Saves result in sv.
-a3d.Camera.prototype.projectVert = function(pm, wv, sv) {
+c3d.Camera.prototype.projectVert = function(pm, wv, sv) {
 	sv.trans(pm, wv);
 	sv.trans(this.viewM, sv);
 };
 
 // Project from world coordinates to screen coordinates. Saves result in stri.
-a3d.Camera.prototype.projectTris = function(pm, stris) {
+c3d.Camera.prototype.projectTris = function(pm, stris) {
 	var screenM = this.viewM;
 	var trisl = stris.length;
 	
@@ -105,8 +105,8 @@ a3d.Camera.prototype.projectTris = function(pm, stris) {
 	}
 };
 //, _update: update
-a3d.Camera.prototype.update = function(pm, dt) {
-	a3d.Camera._super.update.call(this, pm, dt);
+c3d.Camera.prototype.update = function(pm, dt) {
+	c3d.Camera._super.update.call(this, pm, dt);
 	this.invM.inv3m(this.cm);
 };
 
@@ -116,7 +116,7 @@ a3d.Camera.prototype.update = function(pm, dt) {
  * 
  * @constructor
  */
-a3d.RendererBase = function(cfg) {
+c3d.RendererBase = function(cfg) {
 	this.viewport = null;
 	this.camera = null;
 	this.detail = 0;
@@ -125,34 +125,34 @@ a3d.RendererBase = function(cfg) {
 	this.vw = 0;
 	this.vh = 0;
 	
-	a3d.setup(this, cfg);
+	c3d.setup(this, cfg);
 	
-	this.sv1 = new a3d.Vec3(); this.sv2 = new a3d.Vec3(); this.sv3 = new a3d.Vec3();
-	this.svv1 = new a3d.Vec2();
-	this.sm41 = new a3d.Mat4(); this.sm42 = new a3d.Mat4(); this.sm43 = new a3d.Mat4();
-	this.sm21 = new a3d.Mat2(); this.sm22 = new a3d.Mat2(); this.sm23 = new a3d.Mat2();
+	this.sv1 = new c3d.Vec3(); this.sv2 = new c3d.Vec3(); this.sv3 = new c3d.Vec3();
+	this.svv1 = new c3d.Vec2();
+	this.sm41 = new c3d.Mat4(); this.sm42 = new c3d.Mat4(); this.sm43 = new c3d.Mat4();
+	this.sm21 = new c3d.Mat2(); this.sm22 = new c3d.Mat2(); this.sm23 = new c3d.Mat2();
 };
 	
 // Different subclasses of RendererBase, optimized for different browsers,
 // might need to use a different subclass of SceneNode
-a3d.RendererBase.prototype.getSceneNodeClass = function() {
-	return a3d.SceneNode;
+c3d.RendererBase.prototype.getSceneNodeClass = function() {
+	return c3d.SceneNode;
 };
 
-a3d.RendererBase.prototype.viewportResize = function() {
+c3d.RendererBase.prototype.viewportResize = function() {
 	this.vw = this.viewport.w;
 	this.vh = this.viewport.h;
 };
 
-a3d.RendererBase.prototype.render = function(scene) {
+c3d.RendererBase.prototype.render = function(scene) {
 	this._clear();
 	this._render(scene);
 	this._flip();
 };
 
-a3d.RendererBase.prototype.remove = function(objs) {;};
+c3d.RendererBase.prototype.remove = function(objs) {;};
 
-a3d.RendererBase.prototype._render = function(scene) {
+c3d.RendererBase.prototype._render = function(scene) {
 	this.z = 0;
 	var objs = this.objs;
 	objs.length = 0;
@@ -161,10 +161,10 @@ a3d.RendererBase.prototype._render = function(scene) {
 	this.zSort();
 	
 	// Render different object types in state-sorted batches.
-	//a3d.trace('------ start -------');
+	//c3d.trace('------ start -------');
 	
 	objs.push({geom: -1});	// sentinel for simpler loop logic
-	var gPoly = a3d.Render.Geometry.POLY, gSprite = a3d.Render.Geometry.SPRITE;
+	var gPoly = c3d.Render.Geometry.POLY, gSprite = c3d.Render.Geometry.SPRITE;
 	var start = 0, geom = -1;
 	var objsl = objs.length, last = objs.length - 1;
 	for (var i = 0; i < objsl; ++i) {
@@ -176,10 +176,10 @@ a3d.RendererBase.prototype._render = function(scene) {
 			if (i > start) {
 				var batch = objs.slice(start, i);
 				if (geom == gPoly) {
-					//a3d.trace('poly');
+					//c3d.trace('poly');
 					this.drawTriangles(batch);
 				} else if (geom == gSprite) {
-					//a3d.trace('sprite');
+					//c3d.trace('sprite');
 					this.drawSprites(batch);
 				}
 			}
@@ -190,19 +190,19 @@ a3d.RendererBase.prototype._render = function(scene) {
 };
 
 // These functions really should be pure virtual
-a3d.RendererBase.prototype._clear = function() {a3d.trace('_clear');};
-a3d.RendererBase.prototype._flip = function() {a3d.trace(' _flip');};
+c3d.RendererBase.prototype._clear = function() {c3d.trace('_clear');};
+c3d.RendererBase.prototype._flip = function() {c3d.trace(' _flip');};
 
-a3d.RendererBase.prototype.cmpZaxis = function(obj1, obj2) {
+c3d.RendererBase.prototype.cmpZaxis = function(obj1, obj2) {
 	return (obj2.center.z - obj1.center.z);	// z-axis sort
 };
 
-a3d.RendererBase.prototype.cmpCamDist = function(tri1, tri2) {
+c3d.RendererBase.prototype.cmpCamDist = function(tri1, tri2) {
 	// This works because camCenter is in camera space
 	var tri2z = tri2.tri.camCenter.len2(), tri1z = tri1.tri.camCenter.len2();
 	return tri2z - tri1z;
 };
 
-a3d.RendererBase.prototype.zSort = function() {
+c3d.RendererBase.prototype.zSort = function() {
 	this.objs.sort(this.cmpZaxis);
 };

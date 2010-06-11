@@ -117,11 +117,11 @@
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
 		
-		<script src="../../js/adamia3d-math.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/curve3d-math.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/curve3d.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript">
 			
-			var m = new a3d.Mat3();
+			var m = new c3d.Mat3();
 			var origin = null;
 			var originNode = null;
 			var square = null;
@@ -138,8 +138,8 @@
 				
 				var w = parseFloat(square.css('width')), h = parseFloat(square.css('height'));
 				
-				var originPos = new a3d.Vec2(0, 0);
-				if (a3d.$B == 'IE') {
+				var originPos = new c3d.Vec2(0, 0);
+				if (c3d.$B == 'IE') {
 					if (m._11 < 0) originPos.x -= w*m._11;
 					if (m._21 < 0) originPos.x -= w*m._21;
 					if (m._22 < 0) originPos.y -= h*m._22;
@@ -159,11 +159,11 @@
 				var v1x = $('#square-v1').get(0).offsetLeft;
 				var v1y = $('#square-v1').get(0).offsetTop;
 				
-				if (a3d.$B == 'FF') {
+				if (c3d.$B == 'FF') {
 					squareNode.style.MozTransform = m.toCssString();
-				} else if (a3d.$B == 'Saf' || a3d.$B == 'Chr') {
+				} else if (c3d.$B == 'Saf' || c3d.$B == 'Chr') {
 					squareNode.style.WebkitTransform = m.toCssString();
-				} else if (a3d.$B == 'IE') {
+				} else if (c3d.$B == 'IE') {
 					m.applyIeFilter(squareNode);
 				}
 			}

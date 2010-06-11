@@ -1,13 +1,13 @@
 // TODO: Figure out the namespace desired and wrap the whole thing in a single closure
 
 /** @namespace */
-adamia3d = function() {
+curve3d = function() {
 
 	var viewports = {};
 
 	function init(viewportId, rendererClass) {
-		//a3d.trace(BrowserDetect.browser);
-		var v = viewports[viewportId] = new a3d.Viewport(viewportId, rendererClass);
+		//c3d.trace(BrowserDetect.browser);
+		var v = viewports[viewportId] = new c3d.Viewport(viewportId, rendererClass);
 		
 		//v.play();
 		
@@ -18,7 +18,7 @@ adamia3d = function() {
 	// tryin to get around the firebug errors
 	setInterval(function() {
 		for (var id in viewports) {
-			//a3d.Viewport.viewports.push(this);
+			//c3d.Viewport.viewports.push(this);
 			var v = viewports[k];
 			v.tick();
 		}
@@ -40,7 +40,7 @@ adamia3d = function() {
  * 
  * @constructor
  */
-a3d.Viewport = function(viewportId, rendererClass) {
+c3d.Viewport = function(viewportId, rendererClass) {
 	this.id = null;
 	this.node = null;
 	this.renderer = null;
@@ -64,14 +64,14 @@ a3d.Viewport = function(viewportId, rendererClass) {
 	this.id = viewportId;
 	this.node = document.getElementById(this.id);
 	this.tickers = [];
-	this.timeline = new a3d.TimelineManager(this);
+	this.timeline = new c3d.TimelineManager(this);
 	
 	if (!rendererClass) rendererClass = this.getBestRenderer();
 	if (!rendererClass) return;
 	
-	this.camera = new a3d.Camera({viewport: this});
+	this.camera = new c3d.Camera({viewport: this});
 	if (this.node) this.renderer = new rendererClass({viewport: this, camera: this.camera});
-	this.scene = new a3d.Scene();
+	this.scene = new c3d.Scene();
 	this.scene.addChild(this.camera);
 	
 	// Pause the simulation when the body/tab loses focus
@@ -79,21 +79,21 @@ a3d.Viewport = function(viewportId, rendererClass) {
 		if (this.startT) this.play();	// Ignore first load
 	};
 	var pauseFunc = this.pause;
-	if (a3d.$B == 'IE') {
-		a3d.on(document, 'focusin', a3d.bind(this, playFunc));
-		a3d.on(document, 'focusout', a3d.bind(this, pauseFunc));
+	if (c3d.$B == 'IE') {
+		c3d.on(document, 'focusin', c3d.bind(this, playFunc));
+		c3d.on(document, 'focusout', c3d.bind(this, pauseFunc));
 	} else {
-		a3d.on(window, 'focus', a3d.bind(this, playFunc));
-		a3d.on(window, 'blur', a3d.bind(this, pauseFunc));
+		c3d.on(window, 'focus', c3d.bind(this, playFunc));
+		c3d.on(window, 'blur', c3d.bind(this, pauseFunc));
 	}
 	
 	if (this.node) {
-		a3d.on(this.node, 'resize', this.resize);
+		c3d.on(this.node, 'resize', this.resize);
 		this.resize();
 	}
 };
 
-a3d.Viewport.prototype.resize = function() {
+c3d.Viewport.prototype.resize = function() {
 	this.w = parseInt(this.node.offsetWidth);
 	this.h = parseInt(this.node.offsetHeight);
 	this.halfW = this.w >> 1;
@@ -104,32 +104,32 @@ a3d.Viewport.prototype.resize = function() {
 };
 	
 // Figure out the current browser and choose the fastest renderer
-a3d.Viewport.prototype.getBestRenderer = function() {
-	//console.log(a3d.$B);
-	switch (a3d.$B) {
+c3d.Viewport.prototype.getBestRenderer = function() {
+	//console.log(c3d.$B);
+	switch (c3d.$B) {
 		case 'FF':
 		case 'FF2':
 		case 'FF3':
 		case 'OP':
-			return a3d.RendererCanvas2d; break;
+			return c3d.RendererCanvas2d; break;
 		case 'FF3.5':
 		case 'FF3.6':
-			//return a3d.RendererSVG; break;
-			//return a3d.RendererCanvas2dBlit; break;
-			return a3d.RendererCss3Hybrid; break;
-			//return a3d.RendererCss3; break;
+			//return c3d.RendererSVG; break;
+			//return c3d.RendererCanvas2dBlit; break;
+			return c3d.RendererCss3Hybrid; break;
+			//return c3d.RendererCss3; break;
 		
 		case 'SA':
-			return a3d.RendererCanvas2d; break;
+			return c3d.RendererCanvas2d; break;
 		case 'CH':
 		case 'IE8':
 		case 'IE9':
-			return a3d.RendererCss3; break;
+			return c3d.RendererCss3; break;
 	}
 	return null;
 };
 	
-a3d.Viewport.prototype.play = function() {
+c3d.Viewport.prototype.play = function() {
 	this.paused = false;
 	if (this.interval > 0) {
 		var self = this;
@@ -141,7 +141,7 @@ a3d.Viewport.prototype.play = function() {
 		this.tick();
 	}
 };
-a3d.Viewport.prototype.pause = function() {
+c3d.Viewport.prototype.pause = function() {
 	this.paused = true;
 	if (this.intervalId > 0) {
 		clearInterval(this.intervalId);
@@ -149,14 +149,14 @@ a3d.Viewport.prototype.pause = function() {
 	}
 };
 	
-a3d.Viewport.prototype.onTick = function(ticker) {
+c3d.Viewport.prototype.onTick = function(ticker) {
 	this.tickers.push(ticker);
 };
-a3d.Viewport.prototype.unTick = function(ticker) {
+c3d.Viewport.prototype.unTick = function(ticker) {
 	this.tickers.remove(ticker);
 };
 	
-a3d.Viewport.prototype.tick = function() {
+c3d.Viewport.prototype.tick = function() {
 	var dt = 0.0, dtMs = 0;
 	var inter = this.interval;
 	++this.frameCount;
@@ -170,7 +170,7 @@ a3d.Viewport.prototype.tick = function() {
 		// Let the next frame calculate the new DT that
 		// spans both frames
 		if (dtMs < inter*0.5) {
-			//a3d.trace('skipping a simulation frame');
+			//c3d.trace('skipping a simulation frame');
 			return;
 		}
 		
@@ -197,36 +197,36 @@ a3d.Viewport.prototype.tick = function() {
 	
 	// Skip render frames instead of queueing them up
 	//if (dtMs > inter*1.5) {
-		//a3d.trace('skipping a render frame');
+		//c3d.trace('skipping a render frame');
 		//return;
 	//}
 	if (this.renderer) this.renderer.render(this.scene);	// render to buffer & draw buffer to screen
 };
 
 /**
- * A base element in the a3d hierarchy. Has a parent and children.
+ * A base element in the c3d hierarchy. Has a parent and children.
  * Not necessarily renderable.
  * @constructor
  */
-a3d.Entity = function(cfg) {
+c3d.Entity = function(cfg) {
 	this.id = null;
 	this.parent = null;
 	this.children = [];
 	
-	a3d.setup(this, cfg);
+	c3d.setup(this, cfg);
 	this.children = [];
 };
 	
-a3d.Entity.prototype.addChild = function(child, dontSetP) {
+c3d.Entity.prototype.addChild = function(child, dontSetP) {
 	this.children.push(child);
 	if (!dontSetP) child.parent = this; 
 };
-a3d.Entity.prototype.addChildren = function(chs) {
+c3d.Entity.prototype.addChildren = function(chs) {
 	for (var i = 0; i < chs.length; ++i) {
 		this.addChild(chs[i]);
 	}
 };
-a3d.Entity.prototype.removeChild = function(child) {
+c3d.Entity.prototype.removeChild = function(child) {
 	var ch = this.children; var chl = ch.length;
 	for (var i = 0; i < chl; ++i) {
 		if (ch[i] === child) {
@@ -236,13 +236,13 @@ a3d.Entity.prototype.removeChild = function(child) {
 	}
 };
 
-a3d.Entity.prototype.appendTo = function(parent) {
+c3d.Entity.prototype.appendTo = function(parent) {
 	if (this.parent) this.parent.removeChild(this);
 	(this.parent = parent).addChild(this, true);
 };
 
 // Recursive update that will update all children first
-a3d.Entity.prototype.update = function() {
+c3d.Entity.prototype.update = function() {
 	var chs = this.children; var chl = chs.length;
 	for (var i = 0; i <  chl; ++i) {
 		var ch = chs[i];
@@ -256,25 +256,25 @@ a3d.Entity.prototype.update = function() {
  * Automatically handles parent/child matrix transformations.
  * Not necessarily renderable.
  * @constructor
- * @extends {a3d.Entity}
+ * @extends {c3d.Entity}
  */
-a3d.Node = function(cfg) {
-	a3d.Entity.call(this, cfg);
+c3d.Node = function(cfg) {
+	c3d.Entity.call(this, cfg);
 	
-	this.m = new a3d.Mat4();					// local matrix
-	this.cm = new a3d.Mat4();					// concatenated matrix
-	this.sm = new a3d.Mat4();					// scratch matrix
-	this.q = new a3d.Quat();					// rotation quaternion
-	this.sq = new a3d.Quat();					// scratch quaternion
-	this.pos = new a3d.Vec3();					// position vector
-	this.scale = new a3d.Vec3(1.0, 1.0, 1.0);	// scale vector
+	this.m = new c3d.Mat4();					// local matrix
+	this.cm = new c3d.Mat4();					// concatenated matrix
+	this.sm = new c3d.Mat4();					// scratch matrix
+	this.q = new c3d.Quat();					// rotation quaternion
+	this.sq = new c3d.Quat();					// scratch quaternion
+	this.pos = new c3d.Vec3();					// position vector
+	this.scale = new c3d.Vec3(1.0, 1.0, 1.0);	// scale vector
 	this.dirty = false;
 };
-a3d.inherits(a3d.Node, a3d.Entity);
+c3d.inherits(c3d.Node, c3d.Entity);
 	
 // Recursive update that will update all children first. 
 // pm & dt are passed in even though it's unnecessary, to help speed
-a3d.Node.prototype.update = function(pm, dt) {
+c3d.Node.prototype.update = function(pm, dt) {
 	var m = this.m, cm = this.cm;
 	
 	cm.ident();
@@ -298,19 +298,19 @@ a3d.Node.prototype.update = function(pm, dt) {
 	}
 };
 
-a3d.Node.prototype.moveBy = function(x, y, z) {
+c3d.Node.prototype.moveBy = function(x, y, z) {
 	var pos = this.pos;
 	pos.x += x; pos.y += y; pos.z += z;
 	this.dirty = true;
 };
-a3d.Node.prototype.moveTo = function(x, y, z) {
+c3d.Node.prototype.moveTo = function(x, y, z) {
 	var pos = this.pos;
 	pos.x = x; pos.y = y; pos.z = z;
 	this.dirty = true;
 };
 
 // TODO: Optimize the next few functions by baking axis vectors into matrices
-a3d.Node.prototype.rot = function(axis, a) {
+c3d.Node.prototype.rot = function(axis, a) {
 	axis = axis.clone().norm();
 	
 	//this.sm.fromRotAxis(axis, a);
@@ -321,57 +321,57 @@ a3d.Node.prototype.rot = function(axis, a) {
 	this.dirty = true;
 };
 
-a3d.Node.prototype.rotX = function(a) {
-	this.sq.fromRotAxis(a3d.X, a);
+c3d.Node.prototype.rotX = function(a) {
+	this.sq.fromRotAxis(c3d.X, a);
 	this.q.mul(this.sq);
 	
 	this.dirty = true;
 };
-a3d.Node.prototype.rotY = function(a) {
-	this.sq.fromRotAxis(a3d.Y, a);
+c3d.Node.prototype.rotY = function(a) {
+	this.sq.fromRotAxis(c3d.Y, a);
 	this.q.mul(this.sq);
 	
 	this.dirty = true;
 };
-a3d.Node.prototype.rotZ = function(a) {
-	this.sq.fromRotAxis(a3d.Z, a);
+c3d.Node.prototype.rotZ = function(a) {
+	this.sq.fromRotAxis(c3d.Z, a);
 	this.q.mul(this.sq);
 	
 	this.dirty = true;
 };
-a3d.Node.prototype.scaleBy = function(x, y, z) {
+c3d.Node.prototype.scaleBy = function(x, y, z) {
 	var sc = this.scale;
 	sc.x *= x; sc.y *= y; sc.z *= z;
 	
 	this.dirty = true;
 };
-a3d.Node.prototype.scaleTo = function(x, y, z) {
+c3d.Node.prototype.scaleTo = function(x, y, z) {
 	var sc = this.scale;
 	sc.x = x; sc.y = y; sc.z = z;
 	
 	this.dirty = true;
 };
-a3d.Node.prototype.remove = function() {;};
+c3d.Node.prototype.remove = function() {;};
 
 
 /**
  * A renderable Node in a scenegraph.
  * @constructor
- * @extends {a3d.Node}
+ * @extends {c3d.Node}
  */
-a3d.SceneNode = function(cfg) {
+c3d.SceneNode = function(cfg) {
 	this.shader = null;
-	this.geom = a3d.Render.Geometry.NONE;
+	this.geom = c3d.Render.Geometry.NONE;
 	
-	a3d.Node.call(this, cfg);
+	c3d.Node.call(this, cfg);
 	
 	if (!this.shader) {
-		this.shader = a3d.$DefaultShader;
+		this.shader = c3d.$DefaultShader;
 	}
 };
-a3d.inherits(a3d.SceneNode, a3d.Node);
+c3d.inherits(c3d.SceneNode, c3d.Node);
 	
-a3d.SceneNode.prototype.collect = function(r) {
+c3d.SceneNode.prototype.collect = function(r) {
 	var chs = this.children; var chl = chs.length;
 	for (var i = 0; i < chl; ++i) {
 		var ch = chs[i];
@@ -383,31 +383,31 @@ a3d.SceneNode.prototype.collect = function(r) {
 	this._collect(r);
 };
 
-a3d.SceneNode.prototype._collect = function(r) {;};
+c3d.SceneNode.prototype._collect = function(r) {;};
 
 /**
- * A basic scenegraph of a3d.SceneNodes.
+ * A basic scenegraph of c3d.SceneNodes.
  * @constructor
  */
-a3d.Scene = function() {
-	this.root = new a3d.SceneNode();
-	this.baseM = new a3d.Mat4();
+c3d.Scene = function() {
+	this.root = new c3d.SceneNode();
+	this.baseM = new c3d.Mat4();
 };
 	
-a3d.Scene.prototype.addChild = function(child) {
+c3d.Scene.prototype.addChild = function(child) {
 	this.root.addChild(child);
 };
 
-a3d.Scene.prototype.removeChild = function(child) {
+c3d.Scene.prototype.removeChild = function(child) {
 	this.root.removeChild(child);
 };
 
-a3d.Scene.prototype.update = function(baseM, dt) {
+c3d.Scene.prototype.update = function(baseM, dt) {
 	if (!baseM) baseM = this.baseM;
 	this.root.update(baseM, dt);
 };
 
-a3d.Scene.prototype.collect = function(r) {
+c3d.Scene.prototype.collect = function(r) {
 	this.root.collect(r);
 };
 

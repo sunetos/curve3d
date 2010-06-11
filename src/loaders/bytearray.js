@@ -2,7 +2,7 @@
  * Enum for big or little endian.
  * @enum {number}
  */
-a3d.Endian = {
+c3d.Endian = {
 	  BIG: 0
 	, LITTLE: 1
 };
@@ -16,10 +16,10 @@ a3d.Endian = {
  * 
  * @constructor
  */
-a3d.ByteArray = function(data, endian) {
+c3d.ByteArray = function(data, endian) {
 	this.data = (data !== undefined) ? data : '';
 	this.length = data.length;
-	this.endian = (endian !== undefined) ? endian : a3d.Endian.BIG;
+	this.endian = (endian !== undefined) ? endian : c3d.Endian.BIG;
 	this.pos = 0;
 	
 	this.pow = Math.pow;
@@ -28,7 +28,7 @@ a3d.ByteArray = function(data, endian) {
 	
 	// Cache the function pointers based on endianness.
 	// This avoids doing an if-statement in every function call.
-	var funcExt = (endian == a3d.Endian.BIG) ? 'BE' : 'LE';
+	var funcExt = (endian == c3d.Endian.BIG) ? 'BE' : 'LE';
 	var funcs = ['readInt32', 'readInt16', 'readUInt32', 'readUInt16', 'readFloat32', 'readFloat64'];
 	for (var func in funcs) {
 		this[funcs[func]] = this[funcs[func] + funcExt];
@@ -43,22 +43,22 @@ a3d.ByteArray = function(data, endian) {
 	}
 };
 	
-a3d.ByteArray.prototype.readByte = function() {
+c3d.ByteArray.prototype.readByte = function() {
 	return (this.data.charCodeAt(this.pos++) & 0xFF);
 };
 
-a3d.ByteArray.prototype.readBool = function() {
+c3d.ByteArray.prototype.readBool = function() {
 	return (this.data.charCodeAt(this.pos++) & 0xFF) ? true : false;
 };
 
-a3d.ByteArray.prototype.readUInt32BE = function() {
+c3d.ByteArray.prototype.readUInt32BE = function() {
 	var data = this.data, pos = (this.pos += 4) - 4;
 	return	((data.charCodeAt(pos)   & 0xFF) << 24) |
 			((data.charCodeAt(++pos) & 0xFF) << 16) |
 			((data.charCodeAt(++pos) & 0xFF) << 8) |
 			 (data.charCodeAt(++pos) & 0xFF);
 };
-a3d.ByteArray.prototype.readInt32BE = function() {
+c3d.ByteArray.prototype.readInt32BE = function() {
 	var data = this.data, pos = (this.pos += 4) - 4;
 	var x =	((data.charCodeAt(pos)   & 0xFF) << 24) |
 			((data.charCodeAt(++pos) & 0xFF) << 16) |
@@ -67,19 +67,19 @@ a3d.ByteArray.prototype.readInt32BE = function() {
 	return (x >= 2147483648) ? x - 4294967296 : x;
 };
 
-a3d.ByteArray.prototype.readUInt16BE = function() {
+c3d.ByteArray.prototype.readUInt16BE = function() {
 	var data = this.data, pos = (this.pos += 2) - 2;
 	return	((data.charCodeAt(pos)   & 0xFF) << 8) |
 			 (data.charCodeAt(++pos) & 0xFF);
 };
-a3d.ByteArray.prototype.readInt16BE = function() {
+c3d.ByteArray.prototype.readInt16BE = function() {
 	var data = this.data, pos = (this.pos += 2) - 2;
 	var x =	((data.charCodeAt(pos)   & 0xFF) << 8) |
 			 (data.charCodeAt(++pos) & 0xFF);
 	return (x >= 32768) ? x - 65536 : x;
 };
 
-a3d.ByteArray.prototype.readFloat32BE = function() {
+c3d.ByteArray.prototype.readFloat32BE = function() {
 	var data = this.data, pos = (this.pos += 4) - 4;
 	var b1 = data.charCodeAt(pos) & 0xFF,
 		b2 = data.charCodeAt(++pos) & 0xFF,
@@ -93,7 +93,7 @@ a3d.ByteArray.prototype.readFloat32BE = function() {
 	return sign*(1 + this.TWOeN23*sig)*this.pow(2, exp);
 };
 
-a3d.ByteArray.prototype.readFloat64BE = function() {
+c3d.ByteArray.prototype.readFloat64BE = function() {
 	var data = this.data, pos = (this.pos += 8) - 8;
 	var b1 = data.charCodeAt(pos) & 0xFF,
 		b2 = data.charCodeAt(++pos) & 0xFF,
@@ -118,14 +118,14 @@ a3d.ByteArray.prototype.readFloat64BE = function() {
 	return sign*(1.0 + this.TWOeN52*sig)*this.pow(2, exp);
 };
 
-a3d.ByteArray.prototype.readUInt32LE = function() {
+c3d.ByteArray.prototype.readUInt32LE = function() {
 	var data = this.data, pos = (this.pos += 4);
 	return	((data.charCodeAt(--pos) & 0xFF) << 24) |
 			((data.charCodeAt(--pos) & 0xFF) << 16) |
 			((data.charCodeAt(--pos) & 0xFF) << 8) |
 			 (data.charCodeAt(--pos) & 0xFF);
 };
-a3d.ByteArray.prototype.readInt32LE = function() {
+c3d.ByteArray.prototype.readInt32LE = function() {
 	var data = this.data, pos = (this.pos += 4);
 	var x =	((data.charCodeAt(--pos) & 0xFF) << 24) |
 			((data.charCodeAt(--pos) & 0xFF) << 16) |
@@ -134,19 +134,19 @@ a3d.ByteArray.prototype.readInt32LE = function() {
 	return (x >= 2147483648) ? x - 4294967296 : x;
 };
 
-a3d.ByteArray.prototype.readUInt16LE = function() {
+c3d.ByteArray.prototype.readUInt16LE = function() {
 	var data = this.data, pos = (this.pos += 2);
 	return	((data.charCodeAt(--pos) & 0xFF) << 8) |
 			 (data.charCodeAt(--pos) & 0xFF);
 };
-a3d.ByteArray.prototype.readInt16LE = function() {
+c3d.ByteArray.prototype.readInt16LE = function() {
 	var data = this.data, pos = (this.pos += 2);
 	var x =	((data.charCodeAt(--pos) & 0xFF) << 8) |
 			 (data.charCodeAt(--pos) & 0xFF);
 	return (x >= 32768) ? x - 65536 : x;
 };
 
-a3d.ByteArray.prototype.readFloat32LE = function() {
+c3d.ByteArray.prototype.readFloat32LE = function() {
 	var data = this.data, pos = (this.pos += 4);
 	var b1 = data.charCodeAt(--pos) & 0xFF,
 		b2 = data.charCodeAt(--pos) & 0xFF,
@@ -160,7 +160,7 @@ a3d.ByteArray.prototype.readFloat32LE = function() {
 	return sign*(1 + this.TWOeN23*sig)*this.pow(2, exp);
 };
 
-a3d.ByteArray.prototype.readFloat64LE = function() {
+c3d.ByteArray.prototype.readFloat64LE = function() {
 	var data = this.data, pos = (this.pos += 8);
 	var b1 = data.charCodeAt(--pos) & 0xFF,
 		b2 = data.charCodeAt(--pos) & 0xFF,
@@ -188,7 +188,7 @@ a3d.ByteArray.prototype.readFloat64LE = function() {
 /**
  * Read a null-terminated ASCII string.
  */
-a3d.ByteArray.prototype.readCString = function() {
+c3d.ByteArray.prototype.readCString = function() {
 	var data = this.data, pos = this.pos;
 	var len = this.length - pos;
 	

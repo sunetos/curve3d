@@ -1,35 +1,35 @@
 /**
  * @constructor
- * @extends {a3d.Vec2}
+ * @extends {c3d.Vec2}
  */
-a3d.UV = function(x, y) {
-	a3d.Vec2.call(this, x, y);
+c3d.UV = function(x, y) {
+	c3d.Vec2.call(this, x, y);
 };
-a3d.inherits(a3d.UV, a3d.Vec2);
+c3d.inherits(c3d.UV, c3d.Vec2);
 
-a3d.UV.prototype.clone = function() {
-	return new a3d.UV(this.x, this.y);
+c3d.UV.prototype.clone = function() {
+	return new c3d.UV(this.x, this.y);
 };
 
 /**
  * @constructor
- * @extends {a3d.Vec3}
+ * @extends {c3d.Vec3}
  */
-a3d.Vert = function(x, y, z, col) {
-	a3d.Vec3.call(this, x, y, z);
-	this.col = (col) ? ((col instanceof a3d.Color) ? col : new a3d.Color(col)) : a3d.Black;
+c3d.Vert = function(x, y, z, col) {
+	c3d.Vec3.call(this, x, y, z);
+	this.col = (col) ? ((col instanceof c3d.Color) ? col : new c3d.Color(col)) : c3d.Black;
 };
-a3d.inherits(a3d.Vert, a3d.Vec3);
+c3d.inherits(c3d.Vert, c3d.Vec3);
 
-a3d.Vert.prototype.clone = function() {
-	return new a3d.Vert(this.x, this.y, this.z, this.col);
+c3d.Vert.prototype.clone = function() {
+	return new c3d.Vert(this.x, this.y, this.z, this.col);
 };
 
 /**
  * @constructor
- * @extends {a3d.SceneNode}
+ * @extends {c3d.SceneNode}
  */
-a3d.Triangle = function(v1, v2, v3, uv1, uv2, uv3) {
+c3d.Triangle = function(v1, v2, v3, uv1, uv2, uv3) {
 	this.v1 = null; this.v2 = null; this.v3 = null;
 	this.vn1 = null, this.vn2 = null, this.vn3 = null;
 	this.center = null;
@@ -46,35 +46,35 @@ a3d.Triangle = function(v1, v2, v3, uv1, uv2, uv3) {
 	this.img = null;			// Source texture reference
 	this.texture = null;		// Transformed texture via UVs
 	
-	a3d.SceneNode.call(this);
+	c3d.SceneNode.call(this);
 	
-	v1 = this.v1 = (v1) ? v1.clone() : new a3d.Vert();
-	v2 = this.v2 = (v2) ? v2.clone() : new a3d.Vert();
-	v3 = this.v3 = (v3) ? v3.clone() : new a3d.Vert();
+	v1 = this.v1 = (v1) ? v1.clone() : new c3d.Vert();
+	v2 = this.v2 = (v2) ? v2.clone() : new c3d.Vert();
+	v3 = this.v3 = (v3) ? v3.clone() : new c3d.Vert();
 	
 	this.uv1 = (uv1) ? uv1.clone() : null;
 	this.uv2 = (uv2) ? uv2.clone() : null;
 	this.uv3 = (uv3) ? uv3.clone() : null;
 	
-	this.uvm = new a3d.Mat2();
-	this.iuvm = new a3d.Mat2();
-	this.uuvm = new a3d.Mat3();
-	this.iuuvm = new a3d.Mat3();
+	this.uvm = new c3d.Mat2();
+	this.iuvm = new c3d.Mat2();
+	this.uuvm = new c3d.Mat3();
+	this.iuuvm = new c3d.Mat3();
 	
 	this.center = v1.clone().add(v2).add(v3);
 	this.center.div(3.0);
 	
-	this.camCenter = new a3d.Vec3();
+	this.camCenter = new c3d.Vec3();
 };
-a3d.inherits(a3d.Triangle, a3d.SceneNode);
+c3d.inherits(c3d.Triangle, c3d.SceneNode);
 
-a3d.Triangle.prototype.setTexture = function(img) {
+c3d.Triangle.prototype.setTexture = function(img) {
 	this.img = img;
 	this.buildTexture();
 };
 
 // Precalculate UV projection matrix and its inverse
-a3d.Triangle.prototype.buildTexture = function() {
+c3d.Triangle.prototype.buildTexture = function() {
 	var img = this.img, w, h;
 	if (!img || !(w = img.width) || !(h = img.height)) return;
 	
@@ -82,7 +82,7 @@ a3d.Triangle.prototype.buildTexture = function() {
 	if (!this.uv1 || !this.uv2 || !this.uv3) return;
 	
 	if (this.texture) delete(this.texture);
-	//var txt = this.texture = a3d.newCanvas(w, h);
+	//var txt = this.texture = c3d.newCanvas(w, h);
 	
 	var uvm = this.uvm, iuvm = this.iuvm;
 	
@@ -113,36 +113,36 @@ a3d.Triangle.prototype.buildTexture = function() {
 	this.iuuvm.invm(uuvm);
 };
 
-a3d.Triangle.prototype._render = function(r) {
+c3d.Triangle.prototype._render = function(r) {
 	r.drawTriangle(this.cm, this);
 };
 
 /**
  * @constructor
  */
-a3d.ScreenTriangle = function(tri) {
+c3d.ScreenTriangle = function(tri) {
 	this.tri = tri;
-	this.geom = a3d.Render.Geometry.POLY;
+	this.geom = c3d.Render.Geometry.POLY;
 	
-	this.v1 = new a3d.Vert(); this.v2 = new a3d.Vert(); this.v3 = new a3d.Vert();
-	this.center = new a3d.Vert();
+	this.v1 = new c3d.Vert(); this.v2 = new c3d.Vert(); this.v3 = new c3d.Vert();
+	this.center = new c3d.Vert();
 };
 
 /**
  * @constructor
- * @extends {a3d.SceneNode}
+ * @extends {c3d.SceneNode}
  */
-a3d.Mesh = function(cfg) {
+c3d.Mesh = function(cfg) {
 	this.data = null;
 	this.stris = null;
 	
-	a3d.SceneNode.call(this, cfg);
+	c3d.SceneNode.call(this, cfg);
 	
 	if (this.data) this.build();
 };
-a3d.inherits(a3d.Mesh, a3d.SceneNode);
+c3d.inherits(c3d.Mesh, c3d.SceneNode);
 	
-a3d.Mesh.prototype.build = function() {
+c3d.Mesh.prototype.build = function() {
 	// Save an array for the screen triangles to prevent allocating new ones every frame
 	var data = this.data;
 	if (!data) return;
@@ -156,17 +156,17 @@ a3d.Mesh.prototype.build = function() {
 	for (var i = 0; i < dl; ++i) {
 		var tri = tris[i];
 		tri.shader = shader;
-		this.stris[i] = new a3d.ScreenTriangle(tri);
+		this.stris[i] = new c3d.ScreenTriangle(tri);
 	}
 	
 	this.moveToCenter();
 	
-	shader.callbacks['texturechange'] = a3d.bind(this, this.buildTextures);
+	shader.callbacks['texturechange'] = c3d.bind(this, this.buildTextures);
 	if (shader.textures && shader.textures.length) {
 		this.buildTextures(shader.textures);
 	}
 };
-a3d.Mesh.prototype.buildTextures = function(imgs) {
+c3d.Mesh.prototype.buildTextures = function(imgs) {
 	var tris = this.data.fs;
 	var trisl = tris.length;
 	
@@ -178,13 +178,13 @@ a3d.Mesh.prototype.buildTextures = function(imgs) {
 	}
 };
 
-a3d.Mesh.prototype.moveToCenter = function() {
+c3d.Mesh.prototype.moveToCenter = function() {
 	if (this.data) {
 		var tris = this.data.fs;
 		var trisl = tris.length;
 		
 		if (trisl) {
-			var avg = new a3d.Vec3();
+			var avg = new c3d.Vec3();
 			
 			for (var i = 0; i < trisl; ++i) {
 				var tri = tris[i];
@@ -208,7 +208,7 @@ a3d.Mesh.prototype.moveToCenter = function() {
 	}
 };
 
-a3d.Mesh.prototype._collect = function(r) {
+c3d.Mesh.prototype._collect = function(r) {
 	if (!this.data) return;
 	
 	r.camera.projectTris(this.cm, this.stris);
@@ -218,22 +218,22 @@ a3d.Mesh.prototype._collect = function(r) {
 	r.objs.push.apply(r.objs, this.stris);
 };
 
-a3d.Mesh.prototype.remove = function(r) {
+c3d.Mesh.prototype.remove = function(r) {
 	// Remove this object from the renderer's display list
 	r.remove(this.stris);
 };
 
-a3d.Mesh.prototype.debugUVs = function() {
+c3d.Mesh.prototype.debugUVs = function() {
 	var img = this.data.fs[0].img;
 	if (!img) return;
 	var w = img.width, h = img.height;
 	var lw = 16, lh = 16;
 	
-	var cvs = a3d.newCanvas(w, h);
+	var cvs = c3d.newCanvas(w, h);
 	var ctx = cvs.getContext('2d');
 	
 	var dbgDiv = document.createElement('div');
-	dbgDiv.id = 'a3d-debug-uvs';
+	dbgDiv.id = 'c3d-debug-uvs';
 	dbgDiv.style.position = 'absolute';
 	dbgDiv.style.width = '' + w + 'px';
 	dbgDiv.style.height = '' + h + 'px';

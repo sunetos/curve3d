@@ -4,7 +4,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=9">
 
-	<title>Adamia 3D Demo Suite</title>
+	<title>Curve 3D Demo Suite</title>
 	
 	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.0.0/build/cssreset/reset-min.css"> 
 	
@@ -60,74 +60,74 @@
 			height: 30px;
 			margin-top: 8px;
 		}
-		#a3d-pause {
+		#c3d-pause {
 			width: 110px;
 			height: 24px;
 		}
 		#control-panel select {
 			width: 110px;
 		}
-		#a3d-quality {
+		#c3d-quality {
 			height: 40px;
 		}
-		#a3d-renderer {
+		#c3d-renderer {
 			height: 60px;
 		}
 	</style>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/curve3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 			function do3d() {
-				var v = adamia3d.init('viewport');
-				var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
+				var v = curve3d.init('viewport');
+				var pauseBtn = $('#control-panel').find('input[name=c3d-pause]');
 				
 				var mesh = null;
 				var meshName = '';
 				var autoRot = true;
-				var camNode = new a3d.Node();
-				var meshContainer = new a3d.SceneNode();
+				var camNode = new c3d.Node();
+				var meshContainer = new c3d.SceneNode();
 				meshContainer.moveTo(0, 0, 250);
 				
 				v.scene.addChild(camNode);
 				camNode.addChild(v.camera);
 				v.scene.addChild(meshContainer);
 				
-				$('#a3d-quality').change(function() {
-					var quality = $('#a3d-quality :selected').val();
+				$('#c3d-quality').change(function() {
+					var quality = $('#c3d-quality :selected').val();
 					
 					if (quality == 'Solid') {
-						v.camera.detail = a3d.Render.Detail.COLOR;
+						v.camera.detail = c3d.Render.Detail.COLOR;
 					} else {
-						v.camera.detail = a3d.Render.Detail.TXTUR;
+						v.camera.detail = c3d.Render.Detail.TXTUR;
 					}
 				});
 				
 				// Set the current renderer in the UI based on the one chosen by the engine
 				var rendererNames = [];
-				$('#a3d-renderer').children('option').each(function(i,v) { rendererNames.push($(v).text()); });
-				if (v.renderer instanceof a3d.RendererCss3Hybrid)	$('#a3d-renderer').val(rendererNames[0]);
-				if (v.renderer instanceof a3d.RendererCss3)			$('#a3d-renderer').val(rendererNames[1]);
-				if (v.renderer instanceof a3d.RendererCanvas2d)		$('#a3d-renderer').val(rendererNames[2]);
+				$('#c3d-renderer').children('option').each(function(i,v) { rendererNames.push($(v).text()); });
+				if (v.renderer instanceof c3d.RendererCss3Hybrid)	$('#c3d-renderer').val(rendererNames[0]);
+				if (v.renderer instanceof c3d.RendererCss3)			$('#c3d-renderer').val(rendererNames[1]);
+				if (v.renderer instanceof c3d.RendererCanvas2d)		$('#c3d-renderer').val(rendererNames[2]);
 				
-				$('#a3d-renderer').change(function() {
-					var renderName = $('#a3d-renderer :selected').val().substr(0, 5);
+				$('#c3d-renderer').change(function() {
+					var renderName = $('#c3d-renderer :selected').val().substr(0, 5);
 					
 					v.pause();
 					$('#viewport').empty();
 					
 					if (renderName == 'Canva') {
-						v.renderer = new a3d.RendererCanvas2d({viewport: v, camera: v.camera});
+						v.renderer = new c3d.RendererCanvas2d({viewport: v, camera: v.camera});
 					} else if (renderName == 'CSS3+') {
-						v.renderer = new a3d.RendererCss3Hybrid({viewport: v, camera: v.camera});
+						v.renderer = new c3d.RendererCss3Hybrid({viewport: v, camera: v.camera});
 					} else {
-						v.renderer = new a3d.RendererCss3({viewport: v, camera: v.camera});
+						v.renderer = new c3d.RendererCss3({viewport: v, camera: v.camera});
 					}
 					v.resize();
 					v.play();
 				});
 				
-				$('#a3d-mesh').change(function() {
-					var selMesh = $('#a3d-mesh :selected').val();
+				$('#c3d-mesh').change(function() {
+					var selMesh = $('#c3d-mesh :selected').val();
 					if (meshName == selMesh) return;
 					
 					if (mesh) {
@@ -138,7 +138,7 @@
 					v.pause();
 					meshName = selMesh;
 					if (meshName == 'Fish') {
-						a3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
+						c3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../fish/piranhaSkin.jpg');
 							mesh.scaleBy(150, 150, 150);
@@ -147,7 +147,7 @@
 							if (v.paused) v.play();
 						});
 					} else if (meshName == 'Icosphere') {
-						a3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
+						c3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
 							mesh.scaleBy(90, 90, 90);
@@ -156,7 +156,7 @@
 							if (v.paused) v.play();
 						});
 					} else if (meshName == 'Robot Dragon') {
-						a3d.MeshLoader.loadOBJ('../robot-dragon/robot-dragon-fixed.obj', function(meshes) {
+						c3d.MeshLoader.loadOBJ('../robot-dragon/robot-dragon-fixed.obj', function(meshes) {
 							mesh = meshes[0];
 							mesh.shader.addTextureUrl('../robot-dragon/robot-dragon-texture.png');
 							mesh.scaleBy(20, 20, 20);
@@ -165,7 +165,7 @@
 							if (v.paused) v.play();
 						});
 					} else if (meshName == 'Guitar') {
-						a3d.MeshLoader.load3DS('meshes/guitar/cLarBodM.3ds', function(meshes) {
+						c3d.MeshLoader.load3DS('meshes/guitar/cLarBodM.3ds', function(meshes) {
 							mesh = meshes[0];
 							mesh.scaleBy(4, 4, 4);
 							mesh.rotX(Math.PI*1.4);
@@ -177,10 +177,10 @@
 					}
 				});
 				
-				//$('#a3d-renderer').val('CSS3+Canvas');
-				$('#a3d-quality').val('Textured');
-				$('#a3d-mesh').val('Icosphere');
-				$('#a3d-mesh').change();
+				//$('#c3d-renderer').val('CSS3+Canvas');
+				$('#c3d-quality').val('Textured');
+				$('#c3d-mesh').val('Icosphere');
+				$('#c3d-mesh').change();
 				
 				v.onTick(function(dt) {
 					if (mesh && autoRot) {
@@ -191,10 +191,10 @@
 					//camNode.moveBy(0, 0.5, 0);
 				});
 				
-				$('#render-options').find('input[name=a3d-projection]').click(function() {
+				$('#render-options').find('input[name=c3d-projection]').click(function() {
 					var proj = $(this).val();
 					
-					v.camera.projection = (proj == 'persp') ? a3d.Render.Projection.PERSP : a3d.Render.Projection.ORTHO;
+					v.camera.projection = (proj == 'persp') ? c3d.Render.Projection.PERSP : c3d.Render.Projection.ORTHO;
 					v.resize();
 				});
 				
@@ -248,23 +248,23 @@
 	</div>
 	
 	<div id="control-panel">
-		<h3>adamia3d options</h3>
+		<h3>curve3d options</h3>
 		
 		<div id="control-panel-options">
 			<div id="render-options" style="display: none;">
-				<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
-				<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+				<input type="radio" name="c3d-projection" value="ortho" checked /> Orthographic<br/><br />
+				<input type="radio" name="c3d-projection" value="persp" /> Perspective<br/>
 			</div>
 			
 			<h4>Renderer:</h4>
-			<select id="a3d-renderer" name="a3d-renderer" size="3">
+			<select id="c3d-renderer" name="c3d-renderer" size="3">
 				<option>CSS3+Canvas</option>
 				<option>CSS3/IE</option>
 				<option>Canvas 2D</option>
 			</select>
 			
 			<h4>Model:</h4>
-			<select id="a3d-mesh" name="a3d-mesh" size="4">
+			<select id="c3d-mesh" name="c3d-mesh" size="4">
 				<option>Icosphere</option>
 				<option>Fish</option>
 				<option>Robot Dragon</option>
@@ -272,12 +272,12 @@
 			</select>
 			
 			<h4>Quality:</h4>
-			<select id="a3d-quality" name="a3d-quality" size="2">
+			<select id="c3d-quality" name="c3d-quality" size="2">
 				<option>Textured</option>
 				<option>Solid</option>
 			</select>
 			
-			<div id="pause-panel"><input type="button" id="a3d-pause" name="a3d-pause" value="Pause" /></div>
+			<div id="pause-panel"><input type="button" id="c3d-pause" name="c3d-pause" value="Pause" /></div>
 			
 		</div>
 	</div>

@@ -1,4 +1,4 @@
-a3d.newCanvas = function(w, h) {
+c3d.newCanvas = function(w, h) {
 	var cvs = document.createElement('canvas');
 	cvs.style.width = '' + w + 'px';
 	cvs.style.height = '' + h + 'px';
@@ -10,18 +10,18 @@ a3d.newCanvas = function(w, h) {
 
 /**
  * @constructor
- * @extends {a3d.RendererBase}
+ * @extends {c3d.RendererBase}
  */
-a3d.RendererCanvas2dBase = function(cfg) {
-	a3d.RendererBase.call(this, cfg);
+c3d.RendererCanvas2dBase = function(cfg) {
+	c3d.RendererBase.call(this, cfg);
 	
 	if (!this.viewport) return;
 	
 	var vn = this.viewport.node;
 	
 	// Made multiple canvas layers for rendering
-	this.cvs = a3d.newCanvas(vn.offsetWidth, vn.offsetHeight);
-	this.rcvs = a3d.newCanvas(vn.offsetWidth, vn.offsetHeight);
+	this.cvs = c3d.newCanvas(vn.offsetWidth, vn.offsetHeight);
+	this.rcvs = c3d.newCanvas(vn.offsetWidth, vn.offsetHeight);
 	vn.appendChild(this.cvs);
 	
 	this.ctx = this.cvs.getContext('2d');
@@ -30,18 +30,18 @@ a3d.RendererCanvas2dBase = function(cfg) {
 	this.pixelCount = this.cvs.width*this.cvs.height;
 	this.byteCount = this.pixelCount << 2;
 };
-a3d.inherits(a3d.RendererCanvas2dBase, a3d.RendererBase);
+c3d.inherits(c3d.RendererCanvas2dBase, c3d.RendererBase);
 
 /**
  * @constructor
- * @extends {a3d.RendererCanvas2dBase}
+ * @extends {c3d.RendererCanvas2dBase}
  */
-a3d.RendererCanvas2d = function(cfg) {
-	a3d.RendererCanvas2dBase.call(this, cfg);
+c3d.RendererCanvas2d = function(cfg) {
+	c3d.RendererCanvas2dBase.call(this, cfg);
 };
-a3d.inherits(a3d.RendererCanvas2d, a3d.RendererCanvas2dBase);
+c3d.inherits(c3d.RendererCanvas2d, c3d.RendererCanvas2dBase);
 
-a3d.RendererCanvas2d.prototype._clear = function() {
+c3d.RendererCanvas2d.prototype._clear = function() {
 	this.ctx.clearRect(0, 0, this.vw, this.vh);
 	this.rctx.clearRect(0, 0, this.vw, this.vh);
 	this.rctx.save();
@@ -49,12 +49,12 @@ a3d.RendererCanvas2d.prototype._clear = function() {
 	//this.rctx.moveTo(0, 0);
 };
 
-a3d.RendererCanvas2d.prototype._flip = function() {
+c3d.RendererCanvas2d.prototype._flip = function() {
 	this.ctx.drawImage(this.rcvs, 0, 0);
 	this.rctx.restore();
 };
 
-a3d.RendererCanvas2d.prototype.drawPoint = function(pm, col) {
+c3d.RendererCanvas2d.prototype.drawPoint = function(pm, col) {
 	var screenM = this.sm1;
 	//screenM.ident();
 	screenM.mulm(this.viewM, pm);
@@ -63,7 +63,7 @@ a3d.RendererCanvas2d.prototype.drawPoint = function(pm, col) {
 	if (tz < 0.0001) return;
 	
 	var vw = this.vw, vh = this.vh;
-	//a3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
+	//c3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
 	if (tx < 0 || tx >= vw || ty < 0 || ty >= vh) return;
 	
 	this.rctx.fillStyle = col.str;
@@ -79,11 +79,11 @@ a3d.RendererCanvas2d.prototype.drawPoint = function(pm, col) {
 	*/
 };
 
-a3d.RendererCanvas2d.prototype.drawLines = function(pm, col) {
+c3d.RendererCanvas2d.prototype.drawLines = function(pm, col) {
 	
 };
 
-a3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
+c3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 	var trisl = stris.length;
 	for (var i = 0; i < trisl; ++i) {
 		var stri = stris[i];
@@ -257,7 +257,7 @@ a3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 			// drawTrianglesColor()
 			
 			rctx.beginPath();
-			//rctx.fillStyle = a3d.Blue.str;
+			//rctx.fillStyle = c3d.Blue.str;
 			rctx.fillStyle = tri.v1.col.str;
 			rctx.moveTo(v1x, v1y);
 			rctx.lineTo(v2x, v2y);
@@ -268,15 +268,15 @@ a3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 	}
 };
 
-a3d.RendererCanvas2d.prototype.drawSprites = function(sprites) {
+c3d.RendererCanvas2d.prototype.drawSprites = function(sprites) {
 };
 
 /**
  * @constructor
- * @extends {a3d.RendererCanvas2dBase}
+ * @extends {c3d.RendererCanvas2dBase}
  */
-a3d.RendererCanvas2dBlit = function(cfg) {
-	a3d.RendererCanvas2dBase.call(this, cfg);
+c3d.RendererCanvas2dBlit = function(cfg) {
+	c3d.RendererCanvas2dBase.call(this, cfg);
 	
 	this.imgData = this.rctx.getImageData(0, 0, this.cvs.width, this.cvs.height);
 	//this.origImgData = this.imgData;
@@ -284,9 +284,9 @@ a3d.RendererCanvas2dBlit = function(cfg) {
 	// Caching several canvas lookup vars for performance
 	this.origPixels = this.pixels = this.imgData.data;
 };
-a3d.inherits(a3d.RendererCanvas2dBlit, a3d.RendererCanvas2dBase);
+c3d.inherits(c3d.RendererCanvas2dBlit, c3d.RendererCanvas2dBase);
 	
-a3d.RendererCanvas2dBlit.prototype._clear = function() {
+c3d.RendererCanvas2dBlit.prototype._clear = function() {
 	this.ctx.clearRect(0, 0, this.vw, this.vh);
 	
 	/*
@@ -300,12 +300,12 @@ a3d.RendererCanvas2dBlit.prototype._clear = function() {
 	this.pixels = this.imgData.data;
 };
 
-a3d.RendererCanvas2dBlit.prototype._flip = function() {
+c3d.RendererCanvas2dBlit.prototype._flip = function() {
 	this.rctx.putImageData(this.imgData, 0, 0);
 	this.ctx.drawImage(this.rcvs, 0, 0);
 };
 
-a3d.RendererCanvas2dBlit.prototype.drawPoint = function(pm, col, colStr) {
+c3d.RendererCanvas2dBlit.prototype.drawPoint = function(pm, col, colStr) {
 	var bc = this.byteCount, ps = this.pixels;
 	var m = this.m;
 	
@@ -313,13 +313,13 @@ a3d.RendererCanvas2dBlit.prototype.drawPoint = function(pm, col, colStr) {
 	var tx = m._14, ty = m._24;
 	
 	var vw = this.vw, vh = this.vh;
-	//a3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
+	//c3d.trace('tx: ' + tx + ' ty: ' + ty + ' vw: ' + vw + ' vh: ' + vh);
 	if (tx < 0 || tx >= vw || ty < 0 || ty >= vh) return;
 	
 	var pixOff = ty*vw + tx;
 	var byteOff = pixOff << 2;
 	//ps[byteOff] = 255;
-	//a3d.trace('r: ' + (col >> 16) + ' g: ' + ((col >> 8) & 0xFF) + ' b: ' + (col & 0xFF));
+	//c3d.trace('r: ' + (col >> 16) + ' g: ' + ((col >> 8) & 0xFF) + ' b: ' + (col & 0xFF));
 	
 	ps[byteOff++] = col.r;
 	ps[byteOff++] = col.g;

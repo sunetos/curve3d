@@ -3,25 +3,25 @@
  * @param {number} x
  * @param {number} y
  * @param {number} z
- * @param {a3d.Color} col
+ * @param {c3d.Color} col
  * @constructor
- * @extends {a3d.SceneNode}
+ * @extends {c3d.SceneNode}
  */
-a3d.Point = function(x, y, z, col) {
-	this.col = a3d.Black;
+c3d.Point = function(x, y, z, col) {
+	this.col = c3d.Black;
 	
-	a3d.SceneNode.call(this);
+	c3d.SceneNode.call(this);
 	
-	if (col) this.col = (col instanceof a3d.Color) ? col : new a3d.Color(col);
+	if (col) this.col = (col instanceof c3d.Color) ? col : new c3d.Color(col);
 	
 	if (x && y && z) {
 		this.m.moveTo(x, y, z);
 		this.dirty = true;
 	}
 };
-a3d.inherits(a3d.Point, a3d.SceneNode);
+c3d.inherits(c3d.Point, c3d.SceneNode);
 	
-a3d.Point.prototype._collect = function(r) {
+c3d.Point.prototype._collect = function(r) {
 	r.drawPoint(this.cm, this.col);
 };
 

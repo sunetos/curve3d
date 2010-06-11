@@ -7,15 +7,15 @@
  *  Had to extend myself to support newer Chromes, and FF3.5 & FF3.6, and IE9
  */
 //FF35=(/a/[-1]&&Object.getPrototypeOf)?true:false
-//a3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':'object'==(typeof /./)?'Op':'Unknown';
+//c3d.$B = (Object.getPrototypeOf&&window.netscape)?'FF36':(/a/[-1]&&Object.getPrototypeOf)?'FF35':(function x(){})[-5]=='x'?'FF3':(function x(){})[-6]=='x'?'FF2':/a/[-1]=='a'?'FF':'\v'=='v'?'IE':/a/.__proto__=='//'?'Saf':(/s/.test(/a/.toString)||window.chrome)?'Chr':'object'==(typeof /./)?'Op':'Unknown';
 
 // Based on http://www.quirksmode.org/js/detect.html
 var BrowserDetect={init:function(){this.browser=this.searchString(this.dataBrowser)||"An unknown browser";this.version=this.searchVersion(navigator.userAgent)||this.searchVersion(navigator.appVersion)||"an unknown version";this.OS=this.searchString(this.dataOS)||"an unknown OS"},searchString:function(b){for(var a=0;a<b.length;a++){var c=b[a].string,d=b[a].prop;this.versionSearchString=b[a].versionSearch||b[a].identity;if(c){if(c.indexOf(b[a].subString)!=-1)return b[a].identity}else if(d)return b[a].identity}}, searchVersion:function(b){var a=b.indexOf(this.versionSearchString);if(a!=-1)return parseFloat(b.substring(a+this.versionSearchString.length+1))},dataBrowser:[{string:navigator.userAgent,subString:"Chrome",identity:"Chrome"},{string:navigator.userAgent,subString:"OmniWeb",versionSearch:"OmniWeb/",identity:"OmniWeb"},{string:navigator.vendor,subString:"Apple",identity:"Safari",versionSearch:"Version"},{prop:window.opera,identity:"Opera"},{string:navigator.vendor,subString:"iCab",identity:"iCab"},{string:navigator.vendor, subString:"KDE",identity:"Konqueror"},{string:navigator.userAgent,subString:"Firefox",identity:"Firefox"},{string:navigator.vendor,subString:"Camino",identity:"Camino"},{string:navigator.userAgent,subString:"Netscape",identity:"Netscape"},{string:navigator.userAgent,subString:"MSIE",identity:"Explorer",versionSearch:"MSIE"},{string:navigator.userAgent,subString:"Gecko",identity:"Mozilla",versionSearch:"rv"},{string:navigator.userAgent,subString:"Mozilla",identity:"Netscape",versionSearch:"Mozilla"}], dataOS:[{string:navigator.platform,subString:"Win",identity:"Windows"},{string:navigator.platform,subString:"Mac",identity:"Mac"},{string:navigator.userAgent,subString:"iPhone",identity:"iPhone/iPod"},{string:navigator.platform,subString:"Linux",identity:"Linux"}]};BrowserDetect.init();
 var browserMap={Explorer:"IE"+BrowserDetect.version,Opera:"OP",Firefox:"FF"+BrowserDetect.version,Chrome:"CH",Safari:"SA"};
-a3d.$B = browserMap[BrowserDetect.browser];
+c3d.$B = browserMap[BrowserDetect.browser];
 
 /** Standardized method of supplying options to constructors */
-a3d.setup = function(obj, cfg) {
+c3d.setup = function(obj, cfg) {
 	for (k in cfg) {
 		if (obj[k] !== undefined) {
 			obj[k] = cfg[k];
@@ -23,7 +23,7 @@ a3d.setup = function(obj, cfg) {
 	}
 };
 /** Map through a virtual lookup table */
-a3d.setupMap = function(obj, map, cfg) {
+c3d.setupMap = function(obj, map, cfg) {
 	for (k in cfg) {
 		if (obj[k] !== undefined) {
 			obj[map[k]] = cfg[k];
@@ -32,7 +32,7 @@ a3d.setupMap = function(obj, map, cfg) {
 };
 
 /** Super-simple event handler */
-a3d.on = function(node, type, handler) {
+c3d.on = function(node, type, handler) {
 	if (node.addEventListener) {
 		node.addEventListener(type, handler, false);
 	} else if (node.attachEvent) {
@@ -46,7 +46,7 @@ a3d.on = function(node, type, handler) {
  * @param {Object} scope
  * @param {Object} fn
  */  
-a3d.bind = function(scope, fn) {
+c3d.bind = function(scope, fn) {
 	return function () {
 		fn.apply(scope, arguments);
 	};
@@ -54,7 +54,7 @@ a3d.bind = function(scope, fn) {
 
 
 // Not sure why I felt the need to optimize this to death
-a3d.padLeft = function(str, len, ch) {
+c3d.padLeft = function(str, len, ch) {
     if (!ch) ch = ' ';
 	
 	var diff = len - str.length;
@@ -75,7 +75,7 @@ a3d.padLeft = function(str, len, ch) {
  * 
  * @param {Object} str - The string to trim
  */
-a3d.trim = function(str) {
+c3d.trim = function(str) {
 	var start = -1, end = str.length;
 	while (str.charCodeAt(--end) < 33) {;};
 	while (str.charCodeAt(++start) < 33) {;};
@@ -86,17 +86,17 @@ a3d.trim = function(str) {
  * Log to a development console if available, else silently fail.
  * This mainly exists to prevent JS errors in IE and non-firebugged FF.
  */
-a3d.trace = function() {
+c3d.trace = function() {
 	if (typeof(console) != 'undefined') {
 		console.log.apply(console, arguments);
 	}
 }
 
-a3d.numCmp = function(a, b) {
+c3d.numCmp = function(a, b) {
 	return (a - b);
 }
 
-a3d.vecCmp = function(v1, v2) {
+c3d.vecCmp = function(v1, v2) {
 	//var dx = v1.x - v2.x;
 	//return (dx == 0) ? (v1.y - v2.y) : dx;
 	//var dy = v1.y - v2.y;
@@ -114,7 +114,7 @@ a3d.vecCmp = function(v1, v2) {
  * @param {Object} fail
  * @param {Object} binary
  */
-a3d.get = function(url, success, fail, binary) {
+c3d.get = function(url, success, fail, binary) {
 	var xhr = window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
 	var contentType = 'text/plain';
 	var async = true;
@@ -176,8 +176,8 @@ a3d.get = function(url, success, fail, binary) {
  * 
  * @param {Object} node - A DOM element
  */
-a3d.avoidSelect = function(node) {
-	var B = a3d.$B.substr(0, 2);
+c3d.avoidSelect = function(node) {
+	var B = c3d.$B.substr(0, 2);
 	if (B == 'IE' || B == 'Op') {
 		node.onselectstart = function() { return false; };	// ie
 		node.unselectable = 'on';				// non-ie

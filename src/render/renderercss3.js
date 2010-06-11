@@ -1,8 +1,8 @@
 /**
  * @constructor
- * @extends {a3d.RendererBase}
+ * @extends {c3d.RendererBase}
  */
-a3d.RendererCss3 = function(cfg) {
+c3d.RendererCss3 = function(cfg) {
 	this.triFrag = null;		// Cache a DOM fragment for triangle proxy node trees
 	this.$B = 1;				// Fake enum for browser-specific logic
 	this.sqrt = Math.sqrt;
@@ -12,22 +12,22 @@ a3d.RendererCss3 = function(cfg) {
 	this.asin = Math.asin;
 	this.halfPI = Math.PI*0.5;
 	
-	a3d.RendererBase.call(this, cfg);
+	c3d.RendererBase.call(this, cfg);
 	
 	this.triFrag = document.createDocumentFragment();
 	var tmpDiv = document.createElement('div');
-	tmpDiv.innerHTML = '<div class="a3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
-		'<div class="a3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
-		'<div class="a3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left:0; top: 0;">' +
-		'<div class="a3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
-		//'<div class="a3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
-		'<div class="a3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
-		//'<img class="a3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
+	tmpDiv.innerHTML = '<div class="c3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
+		'<div class="c3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+		'<div class="c3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left:0; top: 0;">' +
+		'<div class="c3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
+		//'<div class="c3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+		'<div class="c3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+		//'<img class="c3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
 		'</div></div></div></div></div>';
 	//this.triFrag.appendChild((tmpDiv.firstChild) ? tmpDiv.firstChild : tmpDiv);
 	this.triFrag.appendChild(tmpDiv.firstChild);
 	
-	switch (a3d.$B.substr(0, 2)) {
+	switch (c3d.$B.substr(0, 2)) {
 		case 'FF':	this.$B = 1; break;
 		case 'SA':
 		case 'CH':	this.$B = 2; break;
@@ -36,21 +36,21 @@ a3d.RendererCss3 = function(cfg) {
 		default:	this.$B = null; break;
 	}
 };
-a3d.inherits(a3d.RendererCss3, a3d.RendererBase);
+c3d.inherits(c3d.RendererCss3, c3d.RendererBase);
 	
-a3d.RendererCss3.prototype._clear = function() {
+c3d.RendererCss3.prototype._clear = function() {
 };
 
-a3d.RendererCss3.prototype._flip = function() {
+c3d.RendererCss3.prototype._flip = function() {
 };
 
-a3d.RendererCss3.prototype.drawPoint = function(pm, col) {
+c3d.RendererCss3.prototype.drawPoint = function(pm, col) {
 };
 
-a3d.RendererCss3.prototype.drawLines = function(pm, col) {
+c3d.RendererCss3.prototype.drawLines = function(pm, col) {
 };
 
-a3d.RendererCss3.prototype.remove = function(stris) {
+c3d.RendererCss3.prototype.remove = function(stris) {
 	var trisl = stris.length;
 	for (var i = 0; i < trisl; ++i) {
 		var stri = stris[i];
@@ -61,10 +61,10 @@ a3d.RendererCss3.prototype.remove = function(stris) {
 	}
 };
 
-a3d.RendererCss3.prototype.drawTriangles = function(stris) {
+c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 	var v = this.viewport;
 	var abs = Math.abs;
-	var texturing = (this.camera.detail == a3d.Render.Detail.TXTUR);
+	var texturing = (this.camera.detail == c3d.Render.Detail.TXTUR);
 	
 	var trisl = stris.length;
 	for (var i = 0; i < trisl; ++i) {
@@ -103,7 +103,7 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 		}
 		
 		var shader = tri.shader;
-		if (texturing && shader.type == a3d.ShaderType.TXTUR && shader.textures.length) {
+		if (texturing && shader.type == c3d.ShaderType.TXTUR && shader.textures.length) {
 			// drawTrianglesTexture()
 			
 			var imgs = shader.textures;
@@ -130,14 +130,14 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				stri.rotNode = rotNode = cropNode.firstChild;
 				
 				stri.imgNode = imgNode = img.cloneNode(false);
-				imgNode.className = 'a3d-tri-img';
+				imgNode.className = 'c3d-tri-img';
 				imgNode.style.display = 'block';
 				imgNode.style.position = 'absolute';
 				imgNode.style.left = '0';
 				imgNode.style.top = '0';
 				rotNode.appendChild(imgNode);
 				
-				a3d.avoidSelect(node);
+				c3d.avoidSelect(node);
 				
 				// We only need to build the inverse texture projection once
 				
@@ -479,10 +479,10 @@ a3d.RendererCss3.prototype.drawTriangles = function(stris) {
 	}
 };
 
-a3d.RendererCss3.prototype.drawSprites = function(sprites) {
-	var texturing = (this.camera.detail == a3d.Render.Detail.TXTUR);
+c3d.RendererCss3.prototype.drawSprites = function(sprites) {
+	var texturing = (this.camera.detail == c3d.Render.Detail.TXTUR);
 	if (!texturing) return;
-	var persp = (this.camera.projection == a3d.Render.Projection.PERSP);
+	var persp = (this.camera.projection == c3d.Render.Projection.PERSP);
 	
 	var v = this.viewport;
 	var abs = Math.abs;
@@ -493,7 +493,7 @@ a3d.RendererCss3.prototype.drawSprites = function(sprites) {
 		var sprite = sprites[i];
 		
 		var pos = sprite.center, scale = sprite.scale;	// TODO: Need to get the scale from the concatenated matrix instead
-		//a3d.trace(pos.z);
+		//c3d.trace(pos.z);
 		if (pos.z >= farZ || pos.z <= nearZ) {			// near & far-plane clipping
 			if (sprite.node && sprite.node.style.display != 'none') {
 				sprite.node.style.display = 'none';
@@ -511,19 +511,19 @@ a3d.RendererCss3.prototype.drawSprites = function(sprites) {
 			sprite.node = node = document.createElement('div');
 			sprite.imgNode = imgNode = img.cloneNode(false);
 			
-			node.className = 'a3d-sprite';
+			node.className = 'c3d-sprite';
 			node.style.position = 'absolute';
 			node.style.overflow = 'hidden';
 			//node.style.opacity = '0.8';
 			
-			imgNode.className = 'a3d-sprite-img';
+			imgNode.className = 'c3d-sprite-img';
 			imgNode.style.display = 'block';
 			imgNode.style.position = 'absolute';
 			imgNode.style.left = '0';
 			imgNode.style.top = '0';
 			node.appendChild(imgNode);
 			
-			a3d.avoidSelect(node);
+			c3d.avoidSelect(node);
 			v.node.appendChild(node);
 		}
 		

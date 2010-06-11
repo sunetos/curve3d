@@ -5,7 +5,7 @@
 /**
  * @constructor
  */
-a3d.Chunk3ds = function() {
+c3d.Chunk3ds = function() {
 	this.id = 0;
 	this.length = 0;
 	this.bytesRead = 0;
@@ -14,19 +14,19 @@ a3d.Chunk3ds = function() {
 /**
  * @constructor
  */
-a3d.MeshMaterialData = function() {
+c3d.MeshMaterialData = function() {
 	this.symbol = '';
 	this.fs = [];
 };
 
 /**
  * @constructor
- * @extends {a3d.LoaderBase}
+ * @extends {c3d.LoaderBase}
  */
-a3d.Loader3ds = function(url, data) {
-	a3d.LoaderBase.call(this, url, data);
+c3d.Loader3ds = function(url, data) {
+	c3d.LoaderBase.call(this, url, data);
 	
-	this.ba = new a3d.ByteArray(data, a3d.Endian.LITTLE);
+	this.ba = new c3d.ByteArray(data, c3d.Endian.LITTLE);
 	this.meshes = [];
 	this.meshDatas = [];
 	
@@ -102,11 +102,11 @@ a3d.Loader3ds = function(url, data) {
 	//this.ANIM_ROT = 0xB021;
 	//this.ANIM_SCALE = 0xB022;
 };
-a3d.inherits(a3d.Loader3ds, a3d.LoaderBase);
+c3d.inherits(c3d.Loader3ds, c3d.LoaderBase);
 
-a3d.Loader3ds.prototype.parse = function() {
+c3d.Loader3ds.prototype.parse = function() {
 	//first chunk is always the primary, so we simply read it and parse it
-	var chunk = new a3d.Chunk3ds();
+	var chunk = new c3d.Chunk3ds();
 	this.readChunk(chunk);
 	this.parse3DS(chunk);
 	
@@ -116,9 +116,9 @@ a3d.Loader3ds.prototype.parse = function() {
 
 /**
  * Read id and length of 3ds chunk
- * @param {a3d.Chunk3ds} chunk
+ * @param {c3d.Chunk3ds} chunk
  */		
-a3d.Loader3ds.prototype.readChunk = function(chunk) {
+c3d.Loader3ds.prototype.readChunk = function(chunk) {
 	chunk.id = this.ba.readUnsignedShort();
 	chunk.length = this.ba.readUnsignedInt();
 	chunk.bytesRead = 6;
@@ -127,20 +127,20 @@ a3d.Loader3ds.prototype.readChunk = function(chunk) {
 /**
  * Skips past a chunk. If we don't understand the meaning of a chunk id,
  * we just skip past it.
- * @param {a3d.Chunk3ds} chunk
+ * @param {c3d.Chunk3ds} chunk
  */	
-a3d.Loader3ds.prototype.skipChunk = function(chunk) {
+c3d.Loader3ds.prototype.skipChunk = function(chunk) {
 	this.ba.pos += chunk.length - chunk.bytesRead;
 	chunk.bytesRead = chunk.length;
 };
 
 /**
  * Read the base 3DS object.
- * @param {a3d.Chunk3ds} chunk
+ * @param {c3d.Chunk3ds} chunk
  */		
-a3d.Loader3ds.prototype.parse3DS = function(chunk) {
+c3d.Loader3ds.prototype.parse3DS = function(chunk) {
 	while (chunk.bytesRead < chunk.length) {
-		var subChunk = new a3d.Chunk3ds();
+		var subChunk = new c3d.Chunk3ds();
 		this.readChunk(subChunk);
 		if (subChunk.id == this.EDIT3DS) {
 			this.parseEdit3DS(subChunk);
@@ -155,17 +155,17 @@ a3d.Loader3ds.prototype.parse3DS = function(chunk) {
 
 /**
  * Read the Edit chunk
- * @param {a3d.Chunk3ds} chunk
+ * @param {c3d.Chunk3ds} chunk
  */
-a3d.Loader3ds.prototype.parseEdit3DS = function(chunk) {
+c3d.Loader3ds.prototype.parseEdit3DS = function(chunk) {
 	while (chunk.bytesRead < chunk.length) {
-		var subChunk = new a3d.Chunk3ds();
+		var subChunk = new c3d.Chunk3ds();
 		this.readChunk(subChunk);
 		
 		if (subChunk.id == this.MATERIAL) {
 			this.parseMaterial(subChunk);
 		} else if (subChunk.id == this.MESH) {
-			this.meshData = new a3d.MeshData();
+			this.meshData = new c3d.MeshData();
 			this.meshData.sd = this.shaderData;
 			this.readMeshName(subChunk);
 			this.parseMesh(subChunk);
@@ -177,9 +177,9 @@ a3d.Loader3ds.prototype.parseEdit3DS = function(chunk) {
 	}
 };
 
-a3d.Loader3ds.prototype.parseMaterial = function(chunk) {
+c3d.Loader3ds.prototype.parseMaterial = function(chunk) {
 	while (chunk.bytesRead < chunk.length) {
-		var subChunk = new a3d.Chunk3ds();
+		var subChunk = new c3d.Chunk3ds();
 		this.readChunk(subChunk);
 		
 		if (subChunk.id == this.MAT_NAME) {
@@ -201,19 +201,19 @@ a3d.Loader3ds.prototype.parseMaterial = function(chunk) {
 	}
 };
 
-a3d.Loader3ds.prototype.readMaterialName = function(chunk) {
+c3d.Loader3ds.prototype.readMaterialName = function(chunk) {
 	this.shaderData = this.sds.get(this.ba.readCString());
 	chunk.bytesRead = chunk.length;
 };
 
-a3d.Loader3ds.prototype.readColor = function(type) {
-	this.shaderData.type = a3d.ShaderType.COLOR;
+c3d.Loader3ds.prototype.readColor = function(type) {
+	this.shaderData.type = c3d.ShaderType.COLOR;
 	
 	var color = null;
-	var chunk = new a3d.Chunk3ds();
+	var chunk = new c3d.Chunk3ds();
 	this.readChunk(chunk);
 	if (chunk.id == this.COLOR_RGB) {
-		color = new a3d.Color(this.readColorRGB(chunk));
+		color = new c3d.Color(this.readColorRGB(chunk));
 	} else if (chunk.id == this.COLOR_F) {
 		this.skipChunk(chunk);
 	} else {
@@ -226,7 +226,7 @@ a3d.Loader3ds.prototype.readColor = function(type) {
 };
 
 // TODO: This does not need to be a for loop; unroll it
-a3d.Loader3ds.prototype.readColorRGB = function(chunk) {
+c3d.Loader3ds.prototype.readColorRGB = function(chunk) {
 	var value = 0;
 	
 	for (var i = 0; i < 3; ++i) {
@@ -238,8 +238,8 @@ a3d.Loader3ds.prototype.readColorRGB = function(chunk) {
 	return value;
 };
 
-a3d.Loader3ds.prototype.readTextureFileName = function(chunk) {
-	this.shaderData.type = a3d.ShaderType.TXTUR;
+c3d.Loader3ds.prototype.readTextureFileName = function(chunk) {
+	this.shaderData.type = c3d.ShaderType.TXTUR;
 	
 	var file = this.ba.readCString();
 	var url = (this.baseUrl + file).replace('..', '');
@@ -248,9 +248,9 @@ a3d.Loader3ds.prototype.readTextureFileName = function(chunk) {
 	chunk.bytesRead = chunk.length;
 };
 
-a3d.Loader3ds.prototype.parseMesh = function(chunk) {
+c3d.Loader3ds.prototype.parseMesh = function(chunk) {
 	while (chunk.bytesRead < chunk.length) {
-		var subChunk = new a3d.Chunk3ds();
+		var subChunk = new c3d.Chunk3ds();
 		this.readChunk(subChunk);
 		
 		if (subChunk.id == this.MESH_OBJECT) {
@@ -271,12 +271,12 @@ a3d.Loader3ds.prototype.parseMesh = function(chunk) {
 	}
 };
 
-a3d.Loader3ds.prototype.readMeshName = function(chunk) {
+c3d.Loader3ds.prototype.readMeshName = function(chunk) {
 	this.meshData.name = this.ba.readCString();
 	chunk.bytesRead += this.meshData.name.length + 1;
 };
 
-a3d.Loader3ds.prototype.readMeshVertices = function(chunk) {
+c3d.Loader3ds.prototype.readMeshVertices = function(chunk) {
 	var vs = this.meshData.vs, ba = this.ba;
 	
 	var numVerts = ba.readUnsignedShort();
@@ -284,13 +284,13 @@ a3d.Loader3ds.prototype.readMeshVertices = function(chunk) {
 	
 	var scale = 1.0;
 	for (var i = 0; i < numVerts; ++i) {
-		var v = new a3d.Vert(ba.readFloat()*scale, -ba.readFloat()*scale, -ba.readFloat()*scale);
+		var v = new c3d.Vert(ba.readFloat()*scale, -ba.readFloat()*scale, -ba.readFloat()*scale);
 		vs.push(v);
 	}
 	chunk.bytesRead += 12*numVerts;
 };
 
-a3d.Loader3ds.prototype.readMeshFaces = function(chunk) {
+c3d.Loader3ds.prototype.readMeshFaces = function(chunk) {
 	var fs = this.meshData.fs, ba = this.ba;
 	
 	var numFaces = ba.readUnsignedShort();
@@ -306,10 +306,10 @@ a3d.Loader3ds.prototype.readMeshFaces = function(chunk) {
 
 /**
  * Read the Mesh Material chunk
- * @param {a3d.Chunk3ds} chunk
+ * @param {c3d.Chunk3ds} chunk
  */
-a3d.Loader3ds.prototype.readMeshMaterial = function(chunk) {
-	var meshMat = new a3d.MeshMaterialData();
+c3d.Loader3ds.prototype.readMeshMaterial = function(chunk) {
+	var meshMat = new c3d.MeshMaterialData();
 	meshMat.symbol = this.ba.readCString();
 	chunk.bytesRead += meshMat.symbol.length + 1;
 	
@@ -323,20 +323,20 @@ a3d.Loader3ds.prototype.readMeshMaterial = function(chunk) {
 	this.meshData.mats.push(meshMat);
 };
 
-a3d.Loader3ds.prototype.readMeshTexVert = function(chunk) {
+c3d.Loader3ds.prototype.readMeshTexVert = function(chunk) {
 	var uvs = this.meshData.uvs, ba = this.ba;
 	
 	var numUVs = this.ba.readUnsignedShort();
 	chunk.bytesRead += 2;
 	
 	for (var i = 0; i < numUVs; ++i) {
-		var uv = new a3d.UV(ba.readFloat(), ba.readFloat());
+		var uv = new c3d.UV(ba.readFloat(), ba.readFloat());
 		uvs.push(uv);
 	}
 	chunk.bytesRead += 8*numUVs;
 };
 
-a3d.Loader3ds.prototype.buildMeshes = function() {
+c3d.Loader3ds.prototype.buildMeshes = function() {
 	var mds = this.meshDatas;
 	for (var i = 0; i < mds.length; ++i) {
 		var md = mds[i];
@@ -345,12 +345,12 @@ a3d.Loader3ds.prototype.buildMeshes = function() {
 		var fs = md.fs, vs = md.vs, uvs = md.uvs;
 		for (var j = 0; j < fs.length; ++j) {
 			var fvis = fs[j];
-			var tri = new a3d.Triangle(vs[fvis[0]], vs[fvis[1]], vs[fvis[2]], uvs[fvis[0]], uvs[fvis[1]], uvs[fvis[2]]);
+			var tri = new c3d.Triangle(vs[fvis[0]], vs[fvis[1]], vs[fvis[2]], uvs[fvis[0]], uvs[fvis[1]], uvs[fvis[2]]);
 			fs[j] = tri;
 		}
 		
 		// Create Mesh object
-		var mesh = new a3d.Mesh({name: md.name, data: md, shader: md.sd.shader});
+		var mesh = new c3d.Mesh({name: md.name, data: md, shader: md.sd.shader});
 		this.meshes.push(mesh);
 	}
 };

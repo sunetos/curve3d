@@ -26,24 +26,24 @@
 		}
 	</style>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../dist/adamia3d.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../dist/curve3d.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
 		function do3d() {
-			var v = adamia3d.init('viewport', a3d.RendererCss3);
-			var pauseBtn = $('#control-panel').find('input[name=a3d-pause]');
+			var v = curve3d.init('viewport', c3d.RendererCss3);
+			var pauseBtn = $('#control-panel').find('input[name=c3d-pause]');
 			
 			var mesh = null;
 			var meshName = '';
 			var autoRot = true;
-			var camNode = new a3d.Node();
-			var meshContainer = new a3d.SceneNode();
+			var camNode = new c3d.Node();
+			var meshContainer = new c3d.SceneNode();
 			meshContainer.moveTo(0, 0, 250);
 			
 			v.scene.addChild(camNode);
 			camNode.addChild(v.camera);
 			v.scene.addChild(meshContainer);
 				
-			a3d.MeshLoader.loadOBJ('piranha.obj', function(meshes) {
+			c3d.MeshLoader.loadOBJ('piranha.obj', function(meshes) {
 				mesh = meshes[0];
 				mesh.shader.addTextureUrl('piranhaSkin.jpg');
 				//mesh.moveBy(0, 0, 5);
@@ -53,7 +53,7 @@
 				//mesh.scaleBy(250, 250, 250);
 				meshContainer.addChild(mesh);
 				
-				var sprite = new a3d.Sprite();
+				var sprite = new c3d.Sprite();
 				sprite.scaleBy(250, 250, 250);
 				sprite.moveTo(0, 0, 500);
 				sprite.shader.addTextureUrl('http://www.google.com/intl/en_ALL/images/logo.gif');
@@ -71,10 +71,10 @@
 				}
 			});
 			
-			$('#render-options').find('input[name=a3d-projection]').click(function() {
+			$('#render-options').find('input[name=c3d-projection]').click(function() {
 				var proj = $(this).val();
 				
-				v.camera.projection = (proj == 'persp') ? a3d.Render.Projection.PERSP : a3d.Render.Projection.ORTHO;
+				v.camera.projection = (proj == 'persp') ? c3d.Render.Projection.PERSP : c3d.Render.Projection.ORTHO;
 				v.resize();
 			});
 			
@@ -107,11 +107,11 @@
 <body>
 	<div id="viewport"></div>
 	<div id="render-options">
-		<input type="radio" name="a3d-projection" value="ortho" checked /> Orthographic<br/><br />
-		<input type="radio" name="a3d-projection" value="persp" /> Perspective<br/>
+		<input type="radio" name="c3d-projection" value="ortho" checked /> Orthographic<br/><br />
+		<input type="radio" name="c3d-projection" value="persp" /> Perspective<br/>
 	</div>
 	<div id="control-panel">
-		<input type="button" name="a3d-pause" value="Pause" />
+		<input type="button" name="c3d-pause" value="Pause" />
 	</div>
 	<script type="text/javascript">
 		do3d();
@@ -121,13 +121,13 @@
 	
 	
 	
-	<div class="a3d-tri" style="position: absolute; border: 1px solid red; width: 50px; height: 50px; left: 500px; top: 500px;">
-		<div class="a3d-tri-unrot" style="position: absolute; width: 50px; height: 50px; left: 0; top: 0; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.529919264, M12=0.848048096, M21=-0.848048096, M22=0.529919264); -webkit-transform-origin: top left; -webkit-transform: rotate(-45deg);">
-			<div class="a3d-tri-offset" style="position: absolute; width: 50px; height: 50px; left: -35.3553390593px; top: 0;">
-				<div class="a3d-tri-crop" style="overflow: hidden; position: absolute; width: 70.71067px; height: 35.355339px; left: 0; top: 0;">
-					<div class="a3d-tri-rot" style="position: absolute; width: 50px; height: 50px; left: 35.3553390593px; top: 0px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=-0.7071067, M21=0.7071067, M22=0.7071067);  -webkit-transform-origin: top left; -webkit-transform: rotate(45deg);">
+	<div class="c3d-tri" style="position: absolute; border: 1px solid red; width: 50px; height: 50px; left: 500px; top: 500px;">
+		<div class="c3d-tri-unrot" style="position: absolute; width: 50px; height: 50px; left: 0; top: 0; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.529919264, M12=0.848048096, M21=-0.848048096, M22=0.529919264); -webkit-transform-origin: top left; -webkit-transform: rotate(-45deg);">
+			<div class="c3d-tri-offset" style="position: absolute; width: 50px; height: 50px; left: -35.3553390593px; top: 0;">
+				<div class="c3d-tri-crop" style="overflow: hidden; position: absolute; width: 70.71067px; height: 35.355339px; left: 0; top: 0;">
+					<div class="c3d-tri-rot" style="position: absolute; width: 50px; height: 50px; left: 35.3553390593px; top: 0px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=-0.7071067, M21=0.7071067, M22=0.7071067);  -webkit-transform-origin: top left; -webkit-transform: rotate(45deg);">
 						<div style="position: absolute; background-color: #0099AA; width: 50px; height: 50px; left: 0; top: 0;"></div>
-						<!-- <img src="piranhaSkin.jpg" class="a3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
+						<!-- <img src="piranhaSkin.jpg" class="c3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
 					</div>
 				</div>
 			</div>
@@ -135,13 +135,13 @@
 	</div>
 	
 	
-	<div class="a3d-tri" style="position: absolute; border: 1px solid red; width: 50px; height: 50px; left: 600px; top: 600px;">
-		<div class="a3d-tri-unrot" style="position: absolute; width: 70.71067px; height: 50px; left: -25px; top: -25px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=0.7071067, M21=-0.7071067, M22=0.7071067); -webkit-transform-origin: top left; -webkit-transform: rotate(-45deg);">
-			<div class="a3d-tri-offset" style="position: absolute; width: 50px; height: 50px; left:0px; top: 0;">
-				<div class="a3d-tri-crop" style="overflow: hidden; position: absolute; width: 70.71067px; height: 35.355339px; left: 0; top: 0;">
-					<div class="a3d-tri-rot" style="position: absolute; width: 50px; height: 50px; left: 0px; top: 0px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=-0.7071067, M21=0.7071067, M22=0.7071067);  -webkit-transform-origin: top left; -webkit-transform: rotate(45deg);">
+	<div class="c3d-tri" style="position: absolute; border: 1px solid red; width: 50px; height: 50px; left: 600px; top: 600px;">
+		<div class="c3d-tri-unrot" style="position: absolute; width: 70.71067px; height: 50px; left: -25px; top: -25px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=0.7071067, M21=-0.7071067, M22=0.7071067); -webkit-transform-origin: top left; -webkit-transform: rotate(-45deg);">
+			<div class="c3d-tri-offset" style="position: absolute; width: 50px; height: 50px; left:0px; top: 0;">
+				<div class="c3d-tri-crop" style="overflow: hidden; position: absolute; width: 70.71067px; height: 35.355339px; left: 0; top: 0;">
+					<div class="c3d-tri-rot" style="position: absolute; width: 50px; height: 50px; left: 0px; top: 0px; filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand', M11=0.7071067, M12=-0.7071067, M21=0.7071067, M22=0.7071067);  -webkit-transform-origin: top left; -webkit-transform: rotate(45deg);">
 						<div style="position: absolute; background-color: #0099AA; width: 50px; height: 50px; left: 0; top: 0;"></div>
-						<!-- <img src="piranhaSkin.jpg" class="a3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
+						<!-- <img src="piranhaSkin.jpg" class="c3d-tri-img" style="display: block; position: absolute; left: 0px; top: 0px; -webkit-transform-origin: center center; -moz-transform-origin: center center;  -webkit-transform: matrix(0.772598, -1.09254, -1.09254, 0.130866, -238.177, -93.3811);" /> -->
 					</div>
 				</div>
 			</div>

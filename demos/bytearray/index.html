@@ -31,8 +31,8 @@
 				// Compare the output here to the output from the test SWF.
 				// If all worked, they should be identical.
 	
-				var files = [{filename: 'bigendian.blob', endian: a3d.Endian.BIG, name: 'Big Endian'},
-					{filename: 'littleendian.blob', endian: a3d.Endian.LITTLE, name: 'Little Endian'}];
+				var files = [{filename: 'bigendian.blob', endian: c3d.Endian.BIG, name: 'Big Endian'},
+					{filename: 'littleendian.blob', endian: c3d.Endian.LITTLE, name: 'Little Endian'}];
 				for (var fileIndex in files) {
 					var file = files[fileIndex];
 
@@ -41,7 +41,7 @@
 					}, success: function(data){
 						log(file['name']);
 						
-						var ba = new a3d.ByteArray(data, file['endian']);
+						var ba = new c3d.ByteArray(data, file['endian']);
 						log(ba.readBoolean());
 						log(ba.readBoolean());
 						log(ba.readByte());

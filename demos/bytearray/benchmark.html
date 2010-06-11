@@ -17,16 +17,16 @@
 				// Compare the output here to the output from the test SWF.
 				// If all worked, they should be identical.
 	
-				var files = [{filename: 'bigendian.blob', endian: a3d.Endian.BIG, name: 'Big Endian'}];
+				var files = [{filename: 'bigendian.blob', endian: c3d.Endian.BIG, name: 'Big Endian'}];
 				for (var fileIndex in files) {
 					var file = files[fileIndex];
 
 					$.ajax({async: false, url: file['filename'], beforeSend: function(xhr) {
 						xhr.overrideMimeType('text/plain; charset=x-user-defined');
 					}, success: function(data){
-						// Test the a3d.ByteArray
-						var ba = new a3d.ByteArray(data, file['endian']);
-						JSLitmus.test('a3d.ByteArray', function(count) {
+						// Test the c3d.ByteArray
+						var ba = new c3d.ByteArray(data, file['endian']);
+						JSLitmus.test('c3d.ByteArray', function(count) {
 							while (count--) {
 								ba.pos = 0;
 								
@@ -50,7 +50,7 @@
 						});
 						
 						// Test the BinaryParser
-						var bp = new BinaryParser(file['endian'] == a3d.Endian.BIG, false);
+						var bp = new BinaryParser(file['endian'] == c3d.Endian.BIG, false);
 						var d1  = data.substr(0, 1);
 						var d2  = data.substr(1, 1);
 						var d3  = data.substr(2, 1);

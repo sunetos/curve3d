@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="adamia-3d" basedir="." default="adamia3d">
+<project name="adamia-3d" basedir="." default="curve3d">
 	<property name="closurePath" value="build/closure-compiler.jar" />
 	<tstamp>
-		<format property="A3D-DATE" pattern="MM/dd/yyyy" locale="en,US"/>
+		<format property="C3D-DATE" pattern="MM/dd/yyyy" locale="en,US"/>
 	</tstamp>
 	
 	<property description="Path to output targets" name="dist" value="./dist" />
@@ -12,19 +12,19 @@
 	<!-- Choose amongst: QUIET, DEFAULT, VERBOSE -->
 	<property name="warning-level" value="DEFAULT" />
 	
-	<property name="A3D" value="${dist}/adamia3d.js" />
-	<property name="A3D-MIN" value="${dist}/adamia3d.min.js" />
-	<property name="A3DMATH" value="${dist}/adamia3d-math.js" />
-	<property name="A3DMATH-MIN" value="${dist}/adamia3d-math.min.js" />
-	<property name="A3DBYTE" value="${dist}/bytearray.js" />
-	<property name="A3DBYTE-MIN" value="${dist}/bytearray.min.js" />
+	<property name="C3D" value="${dist}/curve3d.js" />
+	<property name="C3D-MIN" value="${dist}/curve3d.min.js" />
+	<property name="C3DMATH" value="${dist}/curve3d-math.js" />
+	<property name="C3DMATH-MIN" value="${dist}/curve3d-math.min.js" />
+	<property name="C3DBYTE" value="${dist}/bytearray.js" />
+	<property name="C3DBYTE-MIN" value="${dist}/bytearray.min.js" />
 	
 	<loadfile property="VERSION" srcfile="version.txt" />
 	<loadfile property="HEADER" srcFile="src/header.js">
 		<filterchain>
 			<replacetokens>
 				<token key="VERSION" value="${VERSION}" />
-				<token key="DATE" value="${A3D-DATE}" />
+				<token key="DATE" value="${C3D-DATE}" />
 			</replacetokens>
 		</filterchain>
 	</loadfile>
@@ -33,9 +33,9 @@
 		<mkdir dir="${dist}" />
 	</target>
 	
-	<target name="adamia3d" depends="init" description="Full source build">
-		<echo message="Building ${A3D}" />
-		<concat destfile="${A3D}">
+	<target name="curve3d" depends="init" description="Full source build">
+		<echo message="Building ${C3D}" />
+		<concat destfile="${C3D}">
 			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
@@ -58,37 +58,37 @@
 			<fileset file="src/loaders/loader.js" />
 			<fileset file="src/loaders/loader3ds.js" />
 		</concat>
-		<echo message="${A3D} built." />
+		<echo message="${C3D} built." />
 	</target>
 	
 	<target name="math" depends="init" description="Math library, source build">
-		<echo message="Building ${A3DMATH}" />
-		<concat destfile="${A3DMATH}">
+		<echo message="Building ${C3DMATH}" />
+		<concat destfile="${C3DMATH}">
 			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/class.js" />
 			<fileset file="src/math.js" />
 		</concat>
-		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3DMATH}" />
-		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3DMATH}" />
-		<echo message="${A3DMATH} built." />
+		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${C3DMATH}" />
+		<replaceregexp match="Date: " replace="Date: ${C3D-DATE}" file="${C3DMATH}" />
+		<echo message="${C3DMATH} built." />
 	</target>
 	
 	<target name="bytearray" depends="init" description="Math library, source build">
-		<echo message="Building ${A3DBYTE}" />
-		<concat destfile="${A3DBYTE}">
+		<echo message="Building ${C3DBYTE}" />
+		<concat destfile="${C3DBYTE}">
 			<header>${HEADER}</header>
 			<fileset file="src/init.js" />
 			<fileset file="src/loaders/bytearray.js" />
 		</concat>
-		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${A3DBYTE}" />
-		<replaceregexp match="Date: " replace="Date: ${A3D-DATE}" file="${A3DBYTE}" />
-		<echo message="${A3DBYTE} built." />
+		<replaceregexp match="@VERSION" replace="${version}" flags="g" byline="true" file="${C3DBYTE}" />
+		<replaceregexp match="Date: " replace="Date: ${C3D-DATE}" file="${C3DBYTE}" />
+		<echo message="${C3DBYTE} built." />
 	</target>
 	
-	<target name="min" depends="adamia3d" description="Minification">
-		<property name="IN" value="${A3D}" />
-		<property name="OUT" value="${A3D-MIN}" />
+	<target name="min" depends="curve3d" description="Minification">
+		<property name="IN" value="${C3D}" />
+		<property name="OUT" value="${C3D-MIN}" />
 		
 		<echo message="Building ${OUT}" />
 		<exec executable="java">
@@ -105,8 +105,8 @@
 	</target>
 	
 	<target name="math-min" depends="math" description="Minification, math library only">
-		<property name="IN" value="${A3DMATH}" />
-		<property name="OUT" value="${A3DMATH-MIN}" />
+		<property name="IN" value="${C3DMATH}" />
+		<property name="OUT" value="${C3DMATH-MIN}" />
 		
 		<echo message="Building ${OUT}" />
 		<exec executable="java">
@@ -123,8 +123,8 @@
 	</target>
 	
 	<target name="bytearray-min" depends="bytearray" description="Minification, bytearray only">
-		<property name="IN" value="${A3DBYTE}" />
-		<property name="OUT" value="${A3DBYTE-MIN}" />
+		<property name="IN" value="${C3DBYTE}" />
+		<property name="OUT" value="${C3DBYTE-MIN}" />
 		
 		<echo message="Building ${OUT}" />
 		<exec input="${IN}" output="${OUT}.tmp" executable="java">
