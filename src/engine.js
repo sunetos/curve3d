@@ -171,7 +171,7 @@ c3d.Viewport.prototype.tick = function() {
 		// spans both frames
 		if (dtMs < inter*0.5) {
 			//c3d.trace('skipping a simulation frame');
-			return;
+			//return;
 		}
 		
 		this.lastT = thisT;

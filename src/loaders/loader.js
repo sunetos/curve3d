@@ -173,8 +173,8 @@ c3d.MeshLoader.parseOBJ = function(url, obj) {
 	
 	var objl = objs.length;
 	for (var i = 0; i < objl; ++i) {
-		//objs[i].data.fs = objs[i].data.fs.slice(0, 50);
-		//objs[i].data.fs = objs[i].data.fs.slice(0, 1);
+		//objs[i].data.fs = objs[i].data.fs.slice(0, 120);
+		//objs[i].data.fs = objs[i].data.fs.slice(0, 2);
 		objs[i].build();
 	}
 	

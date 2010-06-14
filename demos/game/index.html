@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
+	<!-- <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"> -->
 
 	<title>Curve 3D Game Demo</title>
 	
@@ -128,13 +128,14 @@
 				
 				c3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
 					mesh = meshes[0];
-					mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
-					mesh.scaleBy(90, 90, 90);
-					meshContainer.addChild(mesh);
-					
-					//setTimeout(function() { mesh.debugUVs(); }, 250);
-					
-					if (v.paused) v.play();
+					mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png', function() {
+						mesh.scaleBy(90, 90, 90);
+						meshContainer.addChild(mesh);
+						
+						//setTimeout(function() { mesh.debugUVs(); }, 250);
+						
+						if (v.paused) v.play();
+					});
 				});
 				
 				

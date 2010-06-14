@@ -17,11 +17,11 @@ c3d.RendererCss3 = function(cfg) {
 	this.triFrag = document.createDocumentFragment();
 	var tmpDiv = document.createElement('div');
 	tmpDiv.innerHTML = '<div class="c3d-tri" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
-		'<div class="c3d-tri-unrot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
-		'<div class="c3d-tri-offset" style="position: absolute; width: 1px; height: 1px; left:0; top: 0;">' +
-		'<div class="c3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0; overflow: hidden;">' +
-		//'<div class="c3d-tri-crop" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
-		'<div class="c3d-tri-rot" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;">' +
+		'<div class="c3d-tri-unrot" style="position: static; width: 1px; height: 1px; left: 0; top: 0;">' +
+		'<div class="c3d-tri-offset" style="position: static; width: 1px; height: 1px;">' +
+		'<div class="c3d-tri-crop" style="position: static; width: 1px; height: 1px; overflow: hidden;">' +
+		//'<div class="c3d-tri-crop" style="position: static; width: 1px; height: 1px; left: 0; top: 0;">' +
+		'<div class="c3d-tri-rot" style="position: static; width: 1px; height: 1px;">' +
 		//'<img class="c3d-tri-img" style="position: absolute; width: 1px; height: 1px; left: 0; top: 0;" />' +
 		'</div></div></div></div></div>';
 	//this.triFrag.appendChild((tmpDiv.firstChild) ? tmpDiv.firstChild : tmpDiv);
@@ -42,6 +42,12 @@ c3d.RendererCss3.prototype._clear = function() {
 };
 
 c3d.RendererCss3.prototype._flip = function() {
+};
+c3d.RendererCss3.prototype._detailChanged = function() {
+	var n = this.viewport.node;
+	while (n.firstChild) {
+		n.removeChild(n.firstChild);
+	}
 };
 
 c3d.RendererCss3.prototype.drawPoint = function(pm, col) {
@@ -116,7 +122,7 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 			
 			// Ensure existence of the proxy DOM object
 			var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
-			if (!node || !imgNode || imgNode.tagName != 'IMG' || !node.parentNode || !imgNode.parentNode) {
+			if (!node || !imgNode || node.parentNode !== v.node) {
 				// Cleanup other render types
 				if (node && node.parentNode) node.parentNode.removeChild(node);
 				if (imgNode && imgNode.parentNode) imgNode.parentNode.removeChild(imgNode);
@@ -132,9 +138,13 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				stri.imgNode = imgNode = img.cloneNode(false);
 				imgNode.className = 'c3d-tri-img';
 				imgNode.style.display = 'block';
-				imgNode.style.position = 'absolute';
-				imgNode.style.left = '0';
-				imgNode.style.top = '0';
+				if (this.$B == 4) { // IE
+					imgNode.style.position = 'static';
+				} else {
+					imgNode.style.position = 'absolute';
+					imgNode.style.left = '0';
+					imgNode.style.top = '0';
+				}
 				rotNode.appendChild(imgNode);
 				
 				c3d.avoidSelect(node);
@@ -178,8 +188,8 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
@@ -191,8 +201,8 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
@@ -204,16 +214,16 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.OTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.OTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
 				} else if (this.$B == 4) { // IE
 					m.applyIeFilter(imgNode);
 					
-					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
+					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
 					
 					var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
 					var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
@@ -229,8 +239,8 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
 					unrotNode.style.width = '' + hypot + 'px';
-					unrotNode.style.left = '' + (-bw*0.5) + 'px';
-					unrotNode.style.top = '' + (-bh*0.5) + 'px';
+					unrotNode.style.marginLeft = '' + (-bw*0.5) + 'px';
+					unrotNode.style.marginTop = '' + (-bh*0.5) + 'px';
 					
 					var offX = 0.0, offY = 0.0;
 				
@@ -248,10 +258,14 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				stri.bw = bw; stri.bh = bh;
 				stri.invBw = 1.0/bw; stri.invBh = 1.0/bh;
 				
-				//imgNode.style.left = '' + (-(pp.x + 64)) + 'px';
-				imgNode.style.left = '' + (-pp.x) + 'px';
-				imgNode.style.top = '' + (-pp.y) + 'px';
-				
+				if (this.$B == 4) { // IE
+					imgNode.style.marginLeft = '' + (-pp.x) + 'px';
+					imgNode.style.marginTop = '' + (-pp.y) + 'px';
+				} else {
+					imgNode.style.left = '' + (-pp.x) + 'px';
+					imgNode.style.top = '' + (-pp.y) + 'px';
+				}
+
 				/*			
 				var img2 = imgNode.cloneNode(false);
 				document.body.appendChild(img2);
@@ -322,13 +336,13 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 			// Ensure existence of the proxy DOM object
 			var node = stri.node, imgNode = stri.imgNode, unrotNode, offsetNode, cropNode, rotNode;
 			//console.log(imgNode.nodeName);
-			if (!node || !imgNode || imgNode.nodeName != 'DIV') {
+			if (!node || !imgNode || node.parentNode !== v.node) {
 				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
-				if (imgNode) imgNode.parentNode.removeChild(imgNode);
+				if (node && node.parentNode) node.parentNode.removeChild(node);
+				if (imgNode && imgNode.parentNode) imgNode.parentNode.removeChild(imgNode);
 				
 				var triFrag = this.triFrag.cloneNode(true);
-				stri.node = node = this.viewport.node.appendChild(triFrag.firstChild);
+				stri.node = node = v.node.appendChild(triFrag.firstChild);
 				
 				stri.unrotNode = unrotNode = node.firstChild;
 				stri.offsetNode = offsetNode = unrotNode.firstChild;
@@ -340,9 +354,7 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 				imgNode.style.width = '' + w + 'px';
 				imgNode.style.height = '' + h + 'px';
 				imgNode.style.display = 'block';
-				imgNode.style.position = 'absolute';
-				imgNode.style.left = '0';
-				imgNode.style.top = '0';
+				imgNode.style.position = 'static';
 				rotNode.appendChild(imgNode);
 				//this.viewport.node.appendChild(imgNode);
 				
@@ -364,8 +376,8 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.MozTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.MozTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
@@ -376,8 +388,8 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.WebkitTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.WebkitTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
@@ -388,33 +400,33 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 					rotNode.style.OTransform = 'rotate(' + rotRad + 'rad)';
 					unrotNode.style.OTransform = 'rotate(-' + rotRad + 'rad)';
 					
-					rotNode.style.left = '' + rotOff + 'px';
-					offsetNode.style.left = '-' + rotOff + 'px';
+					rotNode.style.marginLeft = '' + rotOff + 'px';
+					offsetNode.style.marginLeft = '-' + rotOff + 'px';
 					
 					unrotNode.style.width = node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
 				} else if (this.$B == 4) { // IE
-					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
-					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(sizingMethod="auto expand")';
+					rotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
+					unrotNode.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(SizingMethod="auto expand")';
 					
 					var cosRot = this.cos(rotRad), sinRot = this.sin(rotRad);
-					//console.log(cosRot);
-					//console.log(sinRot);
 					var f = rotNode.filters['DXImageTransform.Microsoft.Matrix'];
 					f.M11 = cosRot; f.M12 = -sinRot;
 					f.M21 = sinRot; f.M22 = cosRot;
+					//console.log(f.M11, ' ', f.M12, ' ', f.M21, ' ', f.M22);
 					
 					var irotRad = -rotRad;
 					var cosIRot = this.cos(irotRad), sinIRot = this.sin(irotRad);
 					var f = unrotNode.filters['DXImageTransform.Microsoft.Matrix'];
 					f.M11 = cosIRot; f.M12 = -sinIRot;
 					f.M21 = sinIRot; f.M22 = cosIRot;
+					//console.log(f.M11, ' ', f.M12, ' ', f.M21, ' ', f.M22);
 					
 					node.style.width = rotNode.style.width = offsetNode.style.width = '' + bw + 'px';
 					unrotNode.style.height = node.style.height = rotNode.style.height = offsetNode.style.height = '' + bh + 'px';
 					unrotNode.style.width = '' + hypot + 'px';
-					unrotNode.style.left = '' + (-bw*0.5) + 'px';
-					unrotNode.style.top = '' + (-bh*0.5) + 'px';
+					unrotNode.style.marginLeft = '' + (-bw*0.5) + 'px';
+					unrotNode.style.marginTop = '' + (-bh*0.5) + 'px';
 				}
 				
 				cropNode.style.width = '' + hypot + 'px';
@@ -441,6 +453,7 @@ c3d.RendererCss3.prototype.drawTriangles = function(stris) {
 			
 			
 			aff2d.scaleXY(stri.invBw, stri.invBh);
+			//document.body.appendChild(node); return;
 			
 			if (this.$B == 1) {	// FF
 				node.style.MozTransform = aff2d.toCssString();

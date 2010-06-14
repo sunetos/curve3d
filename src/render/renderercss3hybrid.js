@@ -30,6 +30,12 @@ c3d.RendererCss3Hybrid.prototype._clear = function() {
 
 c3d.RendererCss3Hybrid.prototype._flip = function() {
 };
+c3d.RendererCss3Hybrid.prototype._detailChanged = function() {
+	var n = this.viewport.node;
+	while (n.firstChild) {
+		n.removeChild(n.firstChild);
+	}
+};
 
 c3d.RendererCss3Hybrid.prototype.drawPoint = function(pm, col) {
 };
@@ -91,118 +97,112 @@ c3d.RendererCss3Hybrid.prototype.drawTriangles = function(stris) {
 		}
 		
 		var shader = tri.shader;
-		if (texturing && shader.type == c3d.ShaderType.TXTUR && shader.textures.length) {
-			// drawTrianglesTexture()
 			
-			var imgs = shader.textures;
-			var img = imgs[0];
-			var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
+		var imgs = shader.textures;
+		var img = (imgs) ? imgs[0] : null;
+		var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
+		
+		// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
+		// from the texture image to the triangle, not counting translation yet
+		var w = 128, h = 128;
+		if (img) { w = img.width; h = img.height; }
+		
+		// Ensure existence of the proxy DOM object
+		var node = stri.node;
+		if (!node || !node.parentNode || node.tagName != 'CANVAS') {
+			// Cleanup other render types
+			if (node && node.parentNode) node.parentNode.removeChild(node);
+			//if (imgNode) imgNode.parentNode.removeChild(imgNode);
 			
-			// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
-			// from the texture image to the triangle, not counting translation yet
-			var w = img.width, h = img.height;
+			// Save memory by using as small a triangle as possible
+			var bw = w, bh = h;
+			if (this.$B == 2) {
+				// In chrome only, something horrible happens to the texture if we shrink it much
+				bw = 128; bh = 128;
+			}
+			var scaleX = bw/w, scaleY = bh/h;
 			
-			// Ensure existence of the proxy DOM object
-			var node = stri.node;
-			if (!node || !node.parentNode || node.tagName != 'CANVAS') {
-				// Cleanup other render types
-				if (node && node.parentNode) node.parentNode.removeChild(node);
-				//if (imgNode) imgNode.parentNode.removeChild(imgNode);
-				
-				// Save memory by using as small a triangle as possible
-				var bw = w, bh = h;
-				if (this.$B == 2) {
-					// In chrome only, something horrible happens to the texture if we shrink it much
-					bw = 128; bh = 128;
-				}
-				var scaleX = bw/w, scaleY = bh/h;
-				
-				stri.node = node = c3d.newCanvas(bw, bh);
-				var ctx = node.getContext('2d');
-				node.className = 'c3d-tri';
-				node.style.display = 'block';
-				node.style.position = 'absolute';
-				node.style.left = '0';
-				node.style.top = '0';
-				v.node.appendChild(node);
-				
-				c3d.avoidSelect(node);
-								
-				// We only need to build the inverse texture projection once
-				
-				// Find the texture offset post-transformation (this is crucial)
-				var imgX = tri.originX, imgY = tri.originY;
-				var m = tri.iuuvm;
-				var pp = this.svv1;
-				pp.x = imgX*scaleX; pp.y = imgY*scaleY;
-				pp.trans(m, pp);
-				
+			stri.node = node = c3d.newCanvas(bw, bh);
+			var ctx = node.getContext('2d');
+			node.className = 'c3d-tri';
+			node.style.display = 'block';
+			node.style.position = 'absolute';
+			node.style.left = '0';
+			node.style.top = '0';
+			v.node.appendChild(node);
+			
+			c3d.avoidSelect(node);
+			
+			if (texturing && shader.type == c3d.ShaderType.TXTUR && shader.textures.length) {
+				// Clip to the triangle
 				ctx.beginPath();
 				ctx.moveTo(0, 0);
 				ctx.lineTo(bw, 0);
 				ctx.lineTo(0, bh);
 				ctx.closePath();
 				ctx.clip();
-				
+							
 				// Bake the affine transform, including translation
+				// We only need to build the inverse texture projection once
+				// Find the texture offset post-transformation (this is crucial)
+				var imgX = tri.originX, imgY = tri.originY;
+				var m = tri.iuuvm;
+				var pp = this.svv1;
+				pp.x = imgX*scaleX; pp.y = imgY*scaleY;
+				pp.trans(m, pp);
 				ctx.transform(m._11, m._12, m._21, m._22, -pp.x, -pp.y);
+				
 				ctx.drawImage(img, 0, 0, w, h, 0, 0, bw, bh);
-				
-				stri.bw = w; stri.bh = h;
-				stri.invBw = 1.0/w; stri.invBh = 1.0/h;
-				
-				node.style.width = '' + w + 'px';
-				node.style.height = '' + h + 'px';
-				
-				if (this.$B == 1) {	// FF
-					node.style.MozTransformOrigin = 'top left';
-				} else if (this.$B == 2) { // Webkit
-					node.style.WebkitTransformOrigin = 'top left';
-				} else if (this.$B == 3) { // Opera
-					node.style.OTransformOrigin = 'top left';
-				}
-				node.style.TransformOrigin = 'top left';
 			} else {
-				if (node.style.display != 'block') {
-					node.style.display = 'block';
-				}
+				ctx.fillStyle = tri.shader.diffuse.str;
+				ctx.beginPath();
+				ctx.moveTo(0, 0);
+				ctx.lineTo(bw, 0);
+				ctx.lineTo(0, bh);
+				ctx.closePath();
+				ctx.fill();
 			}
 			
-			// Maybe move the matrix multiply math inline for an optimization?
-			var aff2d = this.sm21;
-			aff2d._11 = d12x; aff2d._12 = d12y;
-			aff2d._21 = d13x; aff2d._22 = d13y;
+			stri.bw = w; stri.bh = h;
+			stri.invBw = 1.0/w; stri.invBh = 1.0/h;
 			
-			aff2d.scaleXY(stri.invBw, stri.invBh);
+			node.style.width = '' + w + 'px';
+			node.style.height = '' + h + 'px';
 			
-			var matStr = aff2d.toCssString();
 			if (this.$B == 1) {	// FF
-				node.style.MozTransform = matStr;
+				node.style.MozTransformOrigin = 'top left';
 			} else if (this.$B == 2) { // Webkit
-				node.style.WebkitTransform = matStr;
+				node.style.WebkitTransformOrigin = 'top left';
 			} else if (this.$B == 3) { // Opera
-				node.style.OTransform = matStr;
+				node.style.OTransformOrigin = 'top left';
 			}
-			
-			node.style.transform = matStr;
-			node.style.left = '' + v1x + 'px';
-			node.style.top = '' + v1y + 'px';
-			
+			node.style.TransformOrigin = 'top left';
 		} else {
-			// drawTrianglesColor()
-			
-			// Multiply inverse UV matrix by affine 2x2 matrix for this triangle to get full transform
-			// from the texture image to the triangle, not counting translation yet
-			var w = 64, h = 64;
-			
-			// Ensure existence of the proxy DOM object
-			var node = stri.node;
-			//console.log(imgNode.nodeName);
-			if (!node || !node.nodeName != 'DIV') {
-				// Cleanup other render types
-				if (node) node.parentNode.removeChild(node);
+			if (node.style.display != 'block') {
+				node.style.display = 'block';
 			}
 		}
+		
+		// Maybe move the matrix multiply math inline for an optimization?
+		var aff2d = this.sm21;
+		aff2d._11 = d12x; aff2d._12 = d12y;
+		aff2d._21 = d13x; aff2d._22 = d13y;
+		
+		aff2d.scaleXY(stri.invBw, stri.invBh);
+		
+		var matStr = aff2d.toCssString();
+		if (this.$B == 1) {	// FF
+			node.style.MozTransform = matStr;
+		} else if (this.$B == 2) { // Webkit
+			node.style.WebkitTransform = matStr;
+		} else if (this.$B == 3) { // Opera
+			node.style.OTransform = matStr;
+		}
+		
+		node.style.transform = matStr;
+		node.style.left = '' + v1x + 'px';
+		node.style.top = '' + v1y + 'px';
+		
 		if (node) node.style.zIndex = this.z++;
 	}
 };

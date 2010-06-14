@@ -53,6 +53,8 @@ c3d.RendererCanvas2d.prototype._flip = function() {
 	this.ctx.drawImage(this.rcvs, 0, 0);
 	this.rctx.restore();
 };
+c3d.RendererCanvas2d.prototype._detailChanged = function() {
+};
 
 c3d.RendererCanvas2d.prototype.drawPoint = function(pm, col) {
 	var screenM = this.sm1;
@@ -84,6 +86,7 @@ c3d.RendererCanvas2d.prototype.drawLines = function(pm, col) {
 };
 
 c3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
+	var texturing = (this.camera.detail == c3d.Render.Detail.TXTUR);
 	var trisl = stris.length;
 	for (var i = 0; i < trisl; ++i) {
 		var stri = stris[i];
@@ -101,10 +104,12 @@ c3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 		var winding = d13y*d12x - d13x*d12y;
 		if (winding < 0) continue;
 		
-		var img = tri.img;
-		if (img) {
+		var shader = tri.shader;
+		if (texturing && shader.type == c3d.ShaderType.TXTUR && shader.textures.length) {
 			// drawTrianglesTexture()
 			
+			var imgs = shader.textures;
+			var img = imgs[0];
 			var uv1 = tri.uv1, uv2 = tri.uv2, uv3 = tri.uv3;
 			
 			
@@ -258,7 +263,7 @@ c3d.RendererCanvas2d.prototype.drawTriangles = function(stris) {
 			
 			rctx.beginPath();
 			//rctx.fillStyle = c3d.Blue.str;
-			rctx.fillStyle = tri.v1.col.str;
+			rctx.fillStyle = tri.shader.diffuse.str;
 			rctx.moveTo(v1x, v1y);
 			rctx.lineTo(v2x, v2y);
 			rctx.lineTo(v3x, v3y);

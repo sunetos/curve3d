@@ -119,7 +119,7 @@ c3d.Camera.prototype.update = function(pm, dt) {
 c3d.RendererBase = function(cfg) {
 	this.viewport = null;
 	this.camera = null;
-	this.detail = 0;
+	this.lastCameraDetail = -1;
 	this.z = 0;				// Track current z-index
 	this.objs = [];			// All renderable objects to draw this frame
 	this.vw = 0;
@@ -145,6 +145,11 @@ c3d.RendererBase.prototype.viewportResize = function() {
 };
 
 c3d.RendererBase.prototype.render = function(scene) {
+	if (this.camera.detail != this.lastCameraDetail) {
+		this.lastCameraDetail = this.camera.detail;
+		this._detailChanged();
+	}
+	
 	this._clear();
 	this._render(scene);
 	this._flip();
@@ -192,6 +197,7 @@ c3d.RendererBase.prototype._render = function(scene) {
 // These functions really should be pure virtual
 c3d.RendererBase.prototype._clear = function() {c3d.trace('_clear');};
 c3d.RendererBase.prototype._flip = function() {c3d.trace(' _flip');};
+c3d.RendererBase.prototype._detailChanged = function() {c3d.trace(' _detailChanged');};
 
 c3d.RendererBase.prototype.cmpZaxis = function(obj1, obj2) {
 	return (obj2.center.z - obj1.center.z);	// z-axis sort

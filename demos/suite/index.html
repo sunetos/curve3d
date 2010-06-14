@@ -137,32 +137,51 @@
 					
 					v.pause();
 					meshName = selMesh;
-					if (meshName == 'Fish') {
-						c3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
+					if (meshName == 'Dice') {
+						c3d.MeshLoader.loadOBJ('meshes/dice/dice.obj', function(meshes) {
 							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../fish/piranhaSkin.jpg');
-							mesh.scaleBy(150, 150, 150);
+							
+							mesh.scaleBy(50, 50, 50);
+							var colors = [0xCC0000, 0x00CC00, 0x0000CC, 0x333333, 0x999999, 0xCCCCCC]
+							for (var i = 0; i < 6; ++i) {
+								var tri1 = mesh.data.fs[i*2], tri2 = mesh.data.fs[i*2 + 1];
+								var shader = new c3d.ColorShader({diffuse: new c3d.Color(colors[i])});
+								tri1.shader = tri2.shader = shader;
+							}
+							mesh.rotX(-Math.PI*1.4);
 							meshContainer.addChild(mesh);
 							
 							if (v.paused) v.play();
+						});
+					} else if (meshName == 'Fish') {
+						c3d.MeshLoader.loadOBJ('../fish/piranha.obj', function(meshes) {
+							mesh = meshes[0];
+							mesh.shader.addTextureUrl('../fish/piranhaSkin.jpg', function() {
+								mesh.scaleBy(150, 150, 150);
+								meshContainer.addChild(mesh);
+								
+								if (v.paused) v.play();
+							});
 						});
 					} else if (meshName == 'Icosphere') {
 						c3d.MeshLoader.loadOBJ('../icosphere/adamia-3d-test-03.obj', function(meshes) {
 							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png');
-							mesh.scaleBy(90, 90, 90);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
+							mesh.shader.addTextureUrl('../icosphere/adamia-test-texture.png', function(){
+								mesh.scaleBy(90, 90, 90);
+								meshContainer.addChild(mesh);
+								
+								if (v.paused) v.play();
+							});
 						});
 					} else if (meshName == 'Robot Dragon') {
 						c3d.MeshLoader.loadOBJ('../robot-dragon/robot-dragon-fixed.obj', function(meshes) {
 							mesh = meshes[0];
-							mesh.shader.addTextureUrl('../robot-dragon/robot-dragon-texture.png');
-							mesh.scaleBy(20, 20, 20);
-							meshContainer.addChild(mesh);
-							
-							if (v.paused) v.play();
+							mesh.shader.addTextureUrl('../robot-dragon/robot-dragon-texture.png', function() {
+								mesh.scaleBy(20, 20, 20);
+								meshContainer.addChild(mesh);
+								
+								if (v.paused) v.play();
+							});
 						});
 					} else if (meshName == 'Guitar') {
 						c3d.MeshLoader.load3DS('meshes/guitar/cLarBodM.3ds', function(meshes) {
@@ -179,7 +198,7 @@
 				
 				//$('#c3d-renderer').val('CSS3+Canvas');
 				$('#c3d-quality').val('Textured');
-				$('#c3d-mesh').val('Icosphere');
+				$('#c3d-mesh').val('Dice');
 				$('#c3d-mesh').change();
 				
 				v.onTick(function(dt) {
@@ -264,7 +283,8 @@
 			</select>
 			
 			<h4>Model:</h4>
-			<select id="c3d-mesh" name="c3d-mesh" size="4">
+			<select id="c3d-mesh" name="c3d-mesh" size="5">
+				<option>Dice</option>
 				<option>Icosphere</option>
 				<option>Fish</option>
 				<option>Robot Dragon</option>
@@ -281,6 +301,5 @@
 			
 		</div>
 	</div>
-
 </body>
 </html>

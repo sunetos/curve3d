@@ -84,15 +84,14 @@ c3d.inherits(c3d.ColorShader, c3d.Shader);
 
 /**
  * @constructor
- * @extends {c3d.Shader}
+ * @extends {c3d.ColorShader}
  */
 c3d.TextureShader = function(cfg) {
+	c3d.ColorShader.call(this, cfg);
 	this.type = c3d.ShaderType.TXTUR;
 	this.textures = [];
-	
-	c3d.Shader.call(this, cfg);
 };
-c3d.inherits(c3d.TextureShader, c3d.Shader);
+c3d.inherits(c3d.TextureShader, c3d.ColorShader);
 	
 c3d.TextureShader.prototype.addTextureImage = function(img) {
 	this.textures.push(img);
@@ -101,9 +100,10 @@ c3d.TextureShader.prototype.addTextureImage = function(img) {
 		cb(this.textures);
 	}
 };
-c3d.TextureShader.prototype.addTextureUrl = function(url) {
+c3d.TextureShader.prototype.addTextureUrl = function(url, cb) {
 	c3d.$TexLib.get(url, c3d.bind(this, function(img) {
 		this.addTextureImage(img);
+		if (cb) cb(this);
 	}));
 };
 
