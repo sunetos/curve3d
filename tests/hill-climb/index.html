@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    
+	<meta http-equiv="X-UA-Compatible" content="IE=8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<title>Hill Climb Algorithm</title>
+	
+	<link rel="stylesheet" href="http://github.com/joshuaclayton/blueprint-css/raw/master/blueprint/screen.css" type="text/css" media="screen, projection">
+	<link rel="stylesheet" href="http://github.com/joshuaclayton/blueprint-css/raw/master/blueprint/print.css" type="text/css" media="print">	
+	<!--[if lt IE 8]><link rel="stylesheet" href="http://github.com/joshuaclayton/blueprint-css/raw/master/blueprint/ie.css" type="text/css" media="screen, projection"><![endif]-->
+
+	<style type="text/css">
+		body {
+			padding: 1.5em;
+			background: #181818;
+			color: #FFFFFF;
+		}
+		body * {
+			color: #EEEEEE;
+		}
+		input {
+			color: #000000;
+		}
+		.view, #noiseview-container {
+			width: 256px;
+			height: 256px;
+			background: transparent;
+		}
+		#noiseview-container {
+			background-color: #000000;
+			position: relative;
+			margin-bottom: 1.5em;
+		}
+		.view {
+			position: absolute;
+			top: 0;
+			left; 0;
+		}
+		#noiseview { z-index: 1; }
+		#pathview { z-index: 2; }
+		
+		label {
+			display: inline-block;
+			width: 9em;
+		}
+		#result {
+			border: 1px solid black;
+			background-color: #DDDDDD;
+			color: black;
+			font-size: 1.5em;
+			padding: 5px;
+		}
+	</style>
+	
+	<!--[if IE]><script src="excanvas.min.js"></script><![endif]-->
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="noise.js" type="text/javascript" charset="utf-8"></script>
+	<script src="hillclimb.js" type="text/javascript" charset="utf-8"></script>
+
+	<script type="text/javascript" charset="utf-8">
+		var w = 0, h = 0;
+		var noiseview, ctx, noiseMap, pathview, pathCtx;
+		
+		// Workaround javascript's annoying negative modulo bug
+		function mod(x, n) {
+			return ((x%n) + n)%n;
+		}
+		
+		function clearPath() {
+			pathCtx.clearRect(0, 0, w, h);
+		}
+		function generateMap() {
+			noiseview = $('#noiseview').fadeTo(0, 0.75);
+			w = noiseview.width(); h = noiseview.height();
+			noiseview.attr('width', w).attr('height', h);
+			ctx = noiseview.get(0).getContext('2d');
+			pathview = $('#pathview');
+			pathview.attr('width', w).attr('height', h);
+			pathCtx = pathview.get(0).getContext('2d');
+			
+			// Generate the noise map data
+			//var perlin = new SimplexNoise();
+			var perlin = new ClassicalNoise();
+			var scale = 2.0;
+			var xFactor = scale/w, yFactor = scale/h;
+			noiseMap = new Array(h);
+			for (var y = 0; y < h; ++y) {
+				noiseMap[y] = new Array(w);
+				for (var x = 0; x < w; ++x) noiseMap[y][x] = perlin.noise(x*xFactor, y*yFactor, 0)*255 | 0;
+			}
+			
+			// Render the map
+			var pixelData = ctx.getImageData(0, 0, w, h), pixels = pixelData.data;
+			for (var y = 0; y < h; ++y) {
+				for (var x = 0; x < w; ++x) {
+					var val = 128 + (noiseMap[y][x]>>1);
+					pixels[((y*w + x)<<2) + 0] = 
+					pixels[((y*w + x)<<2) + 1] = 
+					pixels[((y*w + x)<<2) + 2] = 
+					pixels[((y*w + x)<<2) + 3] = val;
+				}
+			}
+			ctx.putImageData(pixelData, 0, 0);
+		}
+		
+		function randomPoint() {
+			return { x: Math.random()*w | 0, y: Math.random()*h | 0 };
+		}
+		
+		function runAlgo() {
+			var result = $('#result').empty().show();
+			
+			var startNode = randomPoint();
+			var _d = noiseMap;
+			var hillclimb = new c3d.HillClimb(function(p) {
+				// Support wraparound
+				var ym1 = mod(p.y - 1, h), ycc = p.y, yp1 = mod(p.y + 1, h);
+				var xm1 = mod(p.x - 1, w), xcc = p.x, xp1 = mod(p.x + 1, w);
+				
+				return [
+					{ y: ym1, x: xm1 }, { y: ym1, x: xcc }, { y: ym1, x: xp1 },
+					{ y: ycc, x: xm1 },                    { y: ycc, x: xp1 },
+					{ y: yp1, x: xm1 }, { y: yp1, x: xcc }, { y: yp1, x: xp1 }
+				];
+				
+				return ps;
+				
+			}, function(p) {
+				return _d[p.y][p.x];
+			}, startNode, $('#steepest').attr('checked'));
+			
+			var stepMs = 15;
+			var stepCb = function(p, value, steps) {
+				pathCtx.fillStyle = '#0033DD';
+				pathCtx.fillRect(p.x - 1, p.y - 1, 2, 2);
+				result.text('Step #' + steps);
+			};
+			var doneCb = function(p, value, steps) {
+				pathCtx.fillStyle = '#00DD00';
+				pathCtx.fillRect(p.x - 2, p.y - 2, 4, 4);
+				result.text('Took ' + steps + ' steps.');
+			};
+			var localDoneCb = function(p, value, steps) {
+				pathCtx.fillStyle = '#999900';
+				pathCtx.fillRect(p.x - 2, p.y - 2, 4, 4);
+				//console.log('Took', steps, 'steps.');
+			};
+			if ($('#random-restart').attr('checked')) {
+				hillclimb.runWithRestart(stepMs, stepCb, doneCb, localDoneCb, randomPoint);
+			} else {
+				hillclimb.run(stepMs, stepCb, doneCb, localDoneCb, randomPoint);
+			}
+		}
+		$(document).ready(function() {
+			$('#result').hide();
+			$('#generate').click(generateMap);
+			$('#run').click(runAlgo);
+			$('#clear').click(clearPath);
+			generateMap();
+		});
+	</script>
+	
+</head>
+<body>
+	<div class="container">
+		<div id="header" class="span-24 last">
+			<h1>Hill Climb Algorithm</h1>
+			<hr />
+		</div>
+
+		<div class="span-24 last">
+			<div class="span-8">
+				<div><nobr><label for="steepest" title="Steepest Ascent heads in the direction of the greatest improvement over the current position.">Steepest Ascent</label><input type="checkbox" id="steepest" name="steepest" checked /></nobr></div>
+				<div><nobr><label for="random-restart" title="Random Restart keeps trying random positions until there has been no improvement for several attempts.">Random Restart</label><input type="checkbox" id="random-restart" name="random-restart" /></nobr></div>
+				<br/>
+				<div><input type="button" id="run" name="run" value="Run" /></div>
+				<br/>
+				<p id="result"></p>
+			</div>
+			<div class="span-8 last">
+				<div id="noiseview-container">
+					<canvas id="noiseview" class="view"></canvas>
+					<canvas id="pathview" class="view"></canvas>
+				</div>
+				<div><input type="button" id="generate" name="generate" value="Generate Map" /><input type="button" id="clear" name="clear" value="Clear Paths" /></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
