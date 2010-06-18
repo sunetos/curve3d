@@ -30,6 +30,7 @@ c3d.HillClimb.prototype.setNode = function(node) {
 	this.value = this.valueFunc(node);
 };
 
+/** Run one or more steps toward the solution. */
 c3d.HillClimb.prototype.step = function(stepCount) {
 	if (!stepCount || stepCount < 0) stepCount = 1<<30;
 	var neighborsFunc = this.neighborsFunc, valueFunc = this.valueFunc, steepest = this.steepest;
