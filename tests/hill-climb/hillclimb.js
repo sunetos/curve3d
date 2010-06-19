@@ -1,6 +1,11 @@
 /**
+ * @preserve
+ * 
  * Javascript Hill Climb Algorithm.
  * @author Adam R. Smith http://codi.st/
+ * 
+ * Licensed under the new BSD License:
+ * http://www.opensource.org/licenses/bsd-license.php
  */
 
 var c3d = c3d || {};
@@ -8,6 +13,7 @@ c3d.MIN_INT = (1<<31);
 c3d.MAX_INT = ((1<<30) - 1) | (1<<30);
 
 /** 
+ * 
  * Hill climb algorithm object, steppable.
  * This version is flexible and easy to use for educational purposes.
  * For high performance needs the functions should probably be inlined
